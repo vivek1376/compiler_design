@@ -24,9 +24,10 @@ class inFile {
 
 	public:
 		inFile() = delete;
-/*
-		inFile(std::string fileName) {
-			this.fileName = fileName;
+
+		inFile(std::string fileName)
+			: fileName{fileName} {
+			/* this.fileName = fileName; */
 			srcFile.open(fileName, std::ios_base::in);
 		}
 
@@ -36,7 +37,11 @@ class inFile {
 
 			return srcFile.get();
 		}
-*/
+
+		bool isgood() {
+			return srcFile.good();
+		}
+
 		// void ungetChar(char);  // push character back to the
 							   // input file std::string
 		// void incLineCnt();
