@@ -6,9 +6,9 @@ void runLexer(std::string);
 void readCharacterFromStream(std::ifstream&, char&);
 
 enum tokenType {
-	PLUS, MINUS, IF_RW, LOOP_RW, END_RW, L_PAREN, R_PAREN,
-	L_BRACKET, R_BRACKET, NUMBER, IDENTIFIER,
-	// EOF? add more
+    PLUS, MINUS, IF_RW, LOOP_RW, END_RW, L_PAREN, R_PAREN,
+    L_BRACKET, R_BRACKET, NUMBER, IDENTIFIER,
+    // EOF? add more
 };
 
 class Token {
@@ -17,33 +17,34 @@ class Token {
 
 
 class inFile {
-	private:
-		std::ifstream srcFile;
-		std::string fileName;
-		int lineCnt = 0;  // the line count; initialized to zero
+    private:
+        std::ifstream srcFile;
+        std::string fileName;
+        int lineCnt = 0;  // the line count; initialized to zero
+                          //
 
-	public:
-		inFile() = delete;
+    public:
+        inFile() = delete;
 
-		inFile(std::string fileName)
-			: fileName{fileName} {
-			/* this.fileName = fileName; */
-			srcFile.open(fileName, std::ios_base::in);
-		}
+        inFile(std::string fileName)
+            : fileName{fileName} {
+            /* this.fileName = fileName; */
+            srcFile.open(fileName, std::ios_base::in);
+        }
 
-		// bool attachFile(std::string);  // open the named file
+        // bool attachFile(std::string);  // open the named file
 
-		inline char getChar() {
+        inline char getChar() {
 
-			return srcFile.get();
-		}
+            return srcFile.get();
+        }
 
-		bool isgood() {
-			return srcFile.good();
-		}
+        bool isgood() {
+            return srcFile.good();
+        }
 
-		// void ungetChar(char);  // push character back to the
-							   // input file std::string
-		// void incLineCnt();
-		// void getLineCnt();
+        // void ungetChar(char);  // push character back to the
+                               // input file std::string
+        // void incLineCnt();
+        // void getLineCnt();
 };

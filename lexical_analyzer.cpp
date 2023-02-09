@@ -3,45 +3,44 @@
 
 int main() {
 
-	std::string filename = "testfile";
+   std::string filename = "testfile";
 
-	runLexer(filename);
-
-
+   runLexer(filename);
 
 
-	return 0;
+
+   return 0;
 }
 
 void runLexer(std::string filename) {
 
-	inFile srcfile("testfile");
+   inFile srcfile("testfile");
 
-    std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
-	std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
+   std::cout << std::hex << srcfile.getChar();
 
 
-	std::cout << "good? " << srcfile.isgood() << std::endl;
-/* 	std::ifstream infile(filename); */
+   std::cout << "good? " << srcfile.isgood() << std::endl;
+/*    std::ifstream infile(filename); */
 
-/* 	char nextCh; */
+/*    char nextCh; */
 
-/* 	while (infile.good()) { */
-/* 		readCharacterFromStream(infile, nextCh); */
+/*    while (infile.good()) { */
+/*       readCharacterFromStream(infile, nextCh); */
 
-/* 		std::cout << nextCh; */
-/* 		// std::cout << nextCh << std::endl; */
-/* 	} */
+/*       std::cout << nextCh; */
+/*       // std::cout << nextCh << std::endl; */
+/*    } */
 
 }
 
 /* inline void readCharacterFromStream(std::ifstream& infile, char &ch) { */
 
-/* 	infile.get(ch); */
+/*    infile.get(ch); */
 /* } */
