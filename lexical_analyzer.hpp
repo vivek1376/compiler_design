@@ -1,4 +1,5 @@
 #include <fstream>
+#include <unordered_map>
 #include <iostream>
 
 
@@ -12,7 +13,16 @@ enum tokenType {
 };
 
 class Token {
+    private:
+        tokenType tt;
+        std::string tokenStr;
 
+    public:
+
+        Token() = delete;
+
+/*         setTokenType(tokenType tt) { */
+/*         } */
 };
 
 
@@ -40,11 +50,47 @@ class inFile {
         }
 
         bool isgood() {
-            return srcFile.good();
+            // see https://stackoverflow.com/a/4533102/9894266
+            /* return srcFile.good(); */ 
+            return srcFile.good() && !this->isEOF();
         }
 
-        // void ungetChar(char);  // push character back to the
-                               // input file std::string
+        void incLineCnt() {
+        }
+
+        void ungetCh() {
+            srcFile.unget();
+        }
+
+        bool isEOF() {
+            // see https://stackoverflow.com/a/6283787/9894266
+
+            int c = srcFile.peek();
+            if (c == EOF) {
+                if (srcFile.eof())
+                    return true;
+                else
+                    // error ?
+                    // throw exception ?
+                    return true;
+            } else {
+                return false;
+            }
+        }
+
         // void incLineCnt();
         // void getLineCnt();
+};
+
+
+
+class SymbolTable {
+    private:
+        std::unordered_map<std::string, Token> symTab;
+
+    public:
+        Token lookupTokenString(std::string) {
+
+        }
+
 };
