@@ -9,6 +9,10 @@ bool ifStartBlockComment(inFile&);
 bool ifEndBlockComment(inFile&);
 void consumeLineComment(inFile&);
 void processComments(inFile&);
+bool isComment(inFile&);
+bool isWhitespace(inFile&);
+void removeWhitespace(inFile&);
+void buildToken(inFile&);
 
 void prerr(std::string st) {
     std::cerr << st << std::endl;
@@ -60,16 +64,24 @@ void runLexer(std::string filename) {
     // sdfsdfsdf */ char weq;
 
 bool ifStartBlockComment(inFile& srcFile) {
-    
-    if (srcFile.isgood() && srcFile.getChar() != '/') {
+   
+    char ch = srcFile.getChar();
+
+    if (ch != '/') {
         srcFile.ungetCh();
         return false;
     }
 
-    if (srcFile.isgood() && srcFile.getChar() != '*') {
+    ch = srcFile.getChar();
+
+    if (ch != '*') {
+        srcFile.ungetCh();
         srcFile.ungetCh();
         return false;
     }
+
+    srcFile.ungetCh();
+    srcFile.ungetCh();
 
     return true;
 }
@@ -77,8 +89,23 @@ bool ifStartBlockComment(inFile& srcFile) {
 
 bool ifEndBlockComment(inFile& srcFile) {
     
-    if (srcFile.isgood() && srcFile.getChar() != '*') return false;
-    if (srcFile.isgood() && srcFile.getChar() != '/') return false;
+    char ch = srcFile.getChar();
+
+    if (ch != '*') {
+        srcFile.ungetCh();
+        return false;
+    }
+
+    ch = srcFile.getChar();
+
+    if (ch != '/') {
+        srcFile.ungetCh();
+        srcFile.ungetCh();
+        return false;
+    }
+
+    srcFile.ungetCh();
+    srcFile.ungetCh();
 
     return true;
 }
@@ -90,12 +117,14 @@ void consumeLineComment(inFile& srcFile) {
 
     while (srcFile.isgood()) {
 
-        if (srcFile.isEOF()) {std::cerr << "isEOF"; return; }
+        // TODO comment this out ?
+        /* if (srcFile.isEOF()) {std::cerr << "isEOF"; return; } */
 
         std::cerr << "h3" << std::endl;
         ch = srcFile.getChar();
         if (ch == '\n') {
-            // TODO unget ?
+            // TODO unget ? no, since its a whitespace char, consider it a
+            // part of the line comment
             return;
         }
         std::cerr << "ch[" << ch << "]" << std::endl;
@@ -105,7 +134,7 @@ void consumeLineComment(inFile& srcFile) {
 
 
 void processComments(inFile& srcFile) {
-    prerr("processCmnts()");
+    prerr("pc_");
     // next char onwards we have line or block comments
     //
     // for line comment read until newline
@@ -120,6 +149,8 @@ void processComments(inFile& srcFile) {
     if (srcFile.getChar() == '/') {
         consumeLineComment(srcFile);
         std::cerr << "h4" << std::endl;
+        // the file pointer is pointing to the first char of the next line
+        // after the line comment
         return;
     }
 
@@ -137,87 +168,137 @@ void processComments(inFile& srcFile) {
                  // position in file, use this flag to increment file pos by 1 character
 
     while (srcFile.isgood()) {
-        prerr("processCmnt_while");
+        prerr("pc2");
+        ch = srcFile.getChar();
+        srcFile.ungetCh();
+        std::cerr << "<" << ch << ">" << std::endl;
+
         ifInc = true;
 
         if (ifStartBlockComment(srcFile)) {
+            srcFile.getChar();
+            srcFile.getChar();
             prerr("start block");
             cnt++;
             ifInc = false;  // since file pos has moved, do not increment explicitly
         }
 
         if (ifEndBlockComment(srcFile)) {
+            srcFile.getChar();
+            srcFile.getChar();
             prerr("end block");
             cnt--;
             ifInc = false;
         }
 
-        if (cnt == 0) return;
+        if (cnt == 0) break;
 
-        if (ifInc) srcFile.getChar();
+        if (ifInc) srcFile.getChar();  // read a char and discard
     }
 
-    prerr("end_processCmnt_while");
+    prerr("_pc");
+}
+
+void removeWhitespace(inFile& srcFile) {
+
+    char ch;
+
+    while (srcFile.isgood()) {
+        ch = srcFile.getChar();
+
+        if (!std::isspace(ch))
+            break;
+    
+        if (ch == '\n')
+            srcFile.incLineCnt();
+    }
+
+    // we are pointing to a non-whitespace character, or EOF ?
+
+    srcFile.ungetCh();
+
+    return;
+}
+
+bool isWhitespace(inFile& srcFile) {
+    prerr("iw");
+    std::cerr << srcFile.isgood() << std::endl;
+
+    char ch = srcFile.getChar();
+    srcFile.ungetCh();
+    
+    std::cerr << "[" << ch << "]" << std::endl;
+
+    // TODO just return directly
+    if (std::isspace(ch)) {
+        prerr("yes_space");
+        return true;
+    } else {
+        prerr("no_space");
+        return false;
+    }
 }
 
 
-void scan(inFile& srcFile) {
+void scan(inFile& srcFile) {   
 
-    // return one token
-    std::cerr << "h1" << std::endl;
+    while (srcFile.isgood()) {  // TODO or just true
+        prerr("sc1");
 
-    char ch, nextCh;
+        std::cerr << "h1" << std::endl;
+        
+        if (isWhitespace(srcFile)) removeWhitespace(srcFile);
 
-    while (srcFile.isgood()) {
+        if (isComment(srcFile)) processComments(srcFile);
 
-        std::cerr << "in while" << std::endl;
-        ch = srcFile.getChar();
-
-        /* if (ch == '\n') srcFile.incLineCnt(); */
-
-        if (std::isspace(ch)) {
-            if (ch == '\n') srcFile.incLineCnt();
-
-            continue;
-        }
-
-        // we have a non-whitespace character
-
-        // unget ?
-        /* srcFile.ungetCh(); */
-
-        switch (ch) {
-
-            case '/':  // could be comment or divide
-                nextCh = srcFile.getChar();
-                
-                if (nextCh == '/' || nextCh == '*') {
-                    // unget two tumes
-                    srcFile.ungetCh();
-                    srcFile.ungetCh();
-                    processComments(srcFile);
-
-                    std::cerr << "h5" << std::endl;
-                } else {
-                    srcFile.ungetCh();  
-                }
-
-                std::cerr << "h6" << std::endl;
-
-                break;
-
-            default:
-                /* std::cout << srcFile.getChar(); */
-                /* std::cout << ch; */ 
-                std::cout << "<" << ch << ">" << std::endl;
-            
-                
-        }
-
+        // what if multiple line comments or multiple block-comments
+        // so, use while loop
+        
+        if (!isWhitespace(srcFile) && !isComment(srcFile)) break;
     }
 
+    buildToken(srcFile);
+}
 
 
-    std::cerr << "h7" << std::endl;
+void buildToken(inFile& srcFile) {
 
+    prerr("bt");
+
+    char ch = srcFile.getChar();
+    
+    while(!std::isspace(ch)) {
+        prerr("bt2");
+        std::cout << ch;
+        ch = srcFile.getChar();
+    }
+}
+
+
+bool isComment(inFile& srcFile) {
+   
+    char ch = srcFile.getChar();
+
+    if (ch != '/') {
+        srcFile.ungetCh();
+        return false;
+    }
+
+    ch = srcFile.getChar();
+
+    prerr("isc2");
+    if (ch != '/' && ch != '*') {
+        srcFile.ungetCh();
+        srcFile.ungetCh();
+        return false;
+    }
+
+    prerr("isc3");
+    // reset to start of comment
+
+    srcFile.ungetCh();
+    srcFile.ungetCh();
+
+    /* prerr("this_is_comment"); */
+    return true;
 }

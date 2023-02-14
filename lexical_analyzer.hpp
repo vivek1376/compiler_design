@@ -51,8 +51,8 @@ class inFile {
 
         bool isgood() {
             // see https://stackoverflow.com/a/4533102/9894266
-            /* return srcFile.good(); */ 
-            return srcFile.good() && !this->isEOF();
+            return srcFile.good(); 
+            /* return srcFile.good() && !this->isEOF(); */
         }
 
         void incLineCnt() {
