@@ -12,7 +12,7 @@ void processComments(inFile&);
 bool isComment(inFile&);
 bool isWhitespace(inFile&);
 void removeWhitespace(inFile&);
-void buildToken(inFile&);
+Token* buildToken(inFile&, SymbolTable&);
 
 void prerr(std::string st) {
     std::cerr << st << std::endl;
@@ -38,7 +38,7 @@ void runLexer(std::string filename) {
     scan(srcfile);
 
     std::cerr << "h8" << std::endl;
-    
+
     /*    std::ifstream infile(filename); */
 
     /*    char nextCh; */
@@ -64,7 +64,7 @@ void runLexer(std::string filename) {
     // sdfsdfsdf */ char weq;
 
 bool ifStartBlockComment(inFile& srcFile) {
-   
+
     char ch = srcFile.getChar();
 
     if (ch != '/') {
@@ -88,7 +88,7 @@ bool ifStartBlockComment(inFile& srcFile) {
 
 
 bool ifEndBlockComment(inFile& srcFile) {
-    
+
     char ch = srcFile.getChar();
 
     if (ch != '*') {
@@ -144,7 +144,7 @@ void processComments(inFile& srcFile) {
     srcFile.getChar();
 
     // we need to read 2nd char to determine if its line or block comment
-    
+
     // first process line comments
     if (srcFile.getChar() == '/') {
         consumeLineComment(srcFile);
@@ -154,13 +154,13 @@ void processComments(inFile& srcFile) {
         return;
     }
 
-    // now we need to process block comment 
+    // now we need to process block comment
     // only process matching pairs, i.e. /* */*/ or /* /* */ won't be handled
-    
+
     // reset two times to get to start of comment block
     srcFile.ungetCh();
     srcFile.ungetCh();
-    
+
     int cnt = 0;  // to match open/close block comment
 
     char ch;
@@ -208,12 +208,12 @@ void removeWhitespace(inFile& srcFile) {
 
         if (!std::isspace(ch))
             break;
-    
+
         if (ch == '\n')
             srcFile.incLineCnt();
     }
 
-    // we are pointing to a non-whitespace character, or EOF ?
+    // we are pointing to a non-whitespace character; or EOF ?
 
     srcFile.ungetCh();
 
@@ -226,7 +226,7 @@ bool isWhitespace(inFile& srcFile) {
 
     char ch = srcFile.getChar();
     srcFile.ungetCh();
-    
+
     std::cerr << "[" << ch << "]" << std::endl;
 
     // TODO just return directly
@@ -240,43 +240,140 @@ bool isWhitespace(inFile& srcFile) {
 }
 
 
-void scan(inFile& srcFile) {   
+void scan(inFile& srcFile) {
+
+    SymbolTable symTab;
 
     while (srcFile.isgood()) {  // TODO or just true
         prerr("sc1");
 
         std::cerr << "h1" << std::endl;
-        
+
         if (isWhitespace(srcFile)) removeWhitespace(srcFile);
 
         if (isComment(srcFile)) processComments(srcFile);
 
         // what if multiple line comments or multiple block-comments
         // so, use while loop
-        
+
         if (!isWhitespace(srcFile) && !isComment(srcFile)) break;
     }
 
-    buildToken(srcFile);
+    // TODO check isgood() ?
+    buildToken(srcFile, symTab);
 }
 
 
-void buildToken(inFile& srcFile) {
+Token* buildToken(inFile& srcFile, SymbolTable& symTab) {
 
     prerr("bt");
 
-    char ch = srcFile.getChar();
-    
-    while(!std::isspace(ch)) {
-        prerr("bt2");
-        std::cout << ch;
-        ch = srcFile.getChar();
+    char ch = srcFile.getChar(), nextCh;
+    /* std::cerr << "ch: " << ch; */
+    /* prerr("isspace?"); */
+    /* /1* std::cerr << srcFile.isgood() ; *1/ */
+    /* std::cerr << std::isspace(ch) << std::endl; */
+
+    std::string tokenStr;
+
+    switch (ch) {
+        case '<':
+            ch = srcFile.getChar();
+            if (ch == '=') return new Token(tokenType::LESS_EQUAL, NULL);
+
+            srcFile.ungetCh();
+            return new Token(tokenType::LESS_THAN, NULL);
+
+        case '0' ... '9':  // TODO check if correct syntax
+            tokenStr = ch;
+
+            ch = srcFile.getChar();
+            while (ch >= '0' && ch <= '9') {
+                tokenStr.push_back(ch);
+                ch = srcFile.getChar();
+            }
+
+            if (ch == '.') {
+                tokenStr.push_back('.');
+                ch = srcFile.getChar();
+                /* bool dotAppended = false;  // TODO use ? */
+
+                while (ch >= '0' && ch <= '9') {
+
+                    tokenStr.push_back(ch);
+                    ch = srcFile.getChar();
+                }
+
+                // TODO add handling for invalid strings such as 1.
+
+                srcFile.ungetCh();
+                /* return new Token(tokenType::FLOAT, tokenStr); */
+                // NOTE: not bothering with tables for now
+                /* return new Token(tokenType::FLOAT, symTab.lookupTokenString(tokenStr));  // TODO ask */
+                return new Token(tokenType::FLOAT, tokenStr);
+            } else {
+                srcFile.ungetCh();
+                /* return new Token(tokenType::INTEGER, tokenStr); */
+                /* return new Token(tokenType::INTEGER, symTab.lookupTokenString(tokenStr)); */
+                return new Token(tokenType::INTEGER, tokenStr);
+            }
+
+        case 'a' ... 'z':
+
+            tokenStr = ch;
+
+            ch = srcFile.getChar();
+
+            while ((ch >= 'a' && ch <= 'z') ||
+                    (ch >= 'A' && ch <= 'Z') ||
+                    (ch >= '0' && ch <= '9') ||
+                    ch == '_') {
+                tokenStr.push_back(ch);
+                ch = srcFile.getChar();
+            }
+
+            srcFile.ungetCh();
+
+            // identifier
+            return symTab.lookupTokenString(tokenStr);  // TODO no need to use new since lookup..()
+                                                        // creates IDENTIFIER token by default ?
+
+        case '"':
+            tokenStr = "";
+
+            ch = srcFile.getChar();
+
+            // TODO permit " in string ?
+
+            while (ch != '"') {
+                tokenStr.push_back(ch);
+                ch = srcFile.getChar();
+            }
+
+            srcFile.ungetCh();
+
+            /* return symTab.lookupTokenString(tokenStr); */
+            /* return new Token(tokenType::STRING, symTab.lookupTokenString(tokenStr)); */
+            // NOTE: not bothering with tables for now
+            return new Token(tokenType::STRING, tokenStr);
+
+        default:
+            std::cerr << "illegal character" << std::endl;
+            // TODO try again ?
+            return new Token(tokenType::INVALID, std::string(""));
     }
+    /* char ch = srcFile.getChar(); */
+
+    /* while(!std::isspace(ch)) { */
+    /*     prerr("bt2"); */
+    /*     std::cout << ch; */
+    /*     ch = srcFile.getChar(); */
+    /* } */
 }
 
 
 bool isComment(inFile& srcFile) {
-   
+
     char ch = srcFile.getChar();
 
     if (ch != '/') {

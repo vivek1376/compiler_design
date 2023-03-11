@@ -9,20 +9,29 @@ void readCharacterFromStream(std::ifstream&, char&);
 enum tokenType {
     PLUS, MINUS, IF_RW, LOOP_RW, END_RW, L_PAREN, R_PAREN,
     L_BRACKET, R_BRACKET, NUMBER, IDENTIFIER,
+    LESS_THAN, LESS_EQUAL, INTEGER, FLOAT, STRING, UNDEF, INVALID
     // EOF? add more
 };
 
 class Token {
     private:
-        tokenType tt;
+        tokenType ttype;
         std::string tokenStr;
 
     public:
 
         Token() = delete;
 
-/*         setTokenType(tokenType tt) { */
-/*         } */
+        Token(tokenType ttype, std::string tokenStr) {
+            this->tokenStr = tokenStr;
+            this->ttype = ttype;
+        }
+
+        Token(tokenType ttype, Token* tok) {
+            if (tok != NULL) {
+                tok->ttype = ttype;
+            }
+        }
 };
 
 
@@ -86,10 +95,17 @@ class inFile {
 
 class SymbolTable {
     private:
-        std::unordered_map<std::string, Token> symTab;
+        std::unordered_map<std::string, Token*> symTab;
 
     public:
-        Token lookupTokenString(std::string) {
+        Token* lookupTokenString(std::string tokenStr) {
+
+            if (symTab.find(tokenStr) != symTab.end()) {
+                return symTab.find(tokenStr)->second;
+            }
+
+            return symTab.insert(std::make_pair(tokenStr, 
+                        new Token(tokenType::IDENTIFIER, tokenStr))).first->second;
 
         }
 
