@@ -1,4 +1,4 @@
-#include "lexical_analyzer.hpp"
+#include "lexicalAnalyzer.hpp"
 #include <cstdio>
 #include <cctype>
 
@@ -14,21 +14,6 @@ bool isWhitespace(inFile&);
 void removeWhitespace(inFile&);
 Token* buildToken(inFile&, SymbolTable&);
 
-void prerr(std::string st) {
-    std::cerr << st << std::endl;
-}
-
-
-int main() {
-
-    std::string filename = "testfile";
-
-    runLexer(filename);
-
-
-
-    return 0;
-}
 
 void runLexer(std::string filename) {
 

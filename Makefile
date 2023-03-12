@@ -1,10 +1,14 @@
-lexer: lexer.o
-	g++ -Wall -o lexer lexer.o
+main: main.o lexicalAnalyzer.o helperFunctions.o
+	g++ -Wall -o main main.o lexicalAnalyzer.o
 
+main.o: main.cpp lexicalAnalyzer.hpp
+	g++ -Wall -o main.o -c main.cpp
 
-lexer.o: lexical_analyzer.cpp lexical_analyzer.hpp
-	g++ -Wall -o lexer.o -c lexical_analyzer.cpp
+lexicalAnalyzer.o: lexicalAnalyzer.cpp lexicalAnalyzer.hpp token.hpp symbolTable.hpp helperFunctions.hpp
+	g++ -o lexicalAnalyzer.o -c lexicalAnalyzer.cpp
 
+helperFunctions.o: helperFunctions.cpp helperFunctions.hpp
+	g++ -o helperFunctions.o -c helperFunctions.cpp
 
 clean:
-	-rm lexer lexer.o
+	-rm main main.o lexicalAnalyzer.o helperFunctions.o
