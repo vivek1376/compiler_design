@@ -1,5 +1,5 @@
 main: main.o lexicalAnalyzer.o helperFunctions.o
-	g++ -Wall -o main main.o lexicalAnalyzer.o
+	g++ -Wall -o main main.o lexicalAnalyzer.o helperFunctions.o 
 
 main.o: main.cpp lexicalAnalyzer.hpp
 	g++ -Wall -o main.o -c main.cpp

@@ -7,9 +7,12 @@ int main() {
 
     std::string filename = "testfile";
 
-    runLexer(filename);
+    /* LexicalAnalyzer* lexer = LexicalAnalyzer::getInstance(); */
 
+    /* lexer->runLexer(filename); */
 
+    /* runLexer(filename); */
+    LEXER->runLexer(filename);
 
     return 0;
 }

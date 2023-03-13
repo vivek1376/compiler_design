@@ -10,6 +10,9 @@
 #include "symbolTable.hpp"
 #include "helperFunctions.hpp"
 
+#define LEXER   LexicalAnalyzer::getInstance()
+
+
 void runLexer(std::string);
 void readCharacterFromStream(std::ifstream&, char&);
 
@@ -23,51 +26,49 @@ class inFile {
     public:
         inFile() = delete;
 
-        inFile(std::string fileName)
-            : fileName{fileName} {
-            /* this.fileName = fileName; */
-            srcFile.open(fileName, std::ios_base::in);
-        }
+        inFile(std::string fileName);
 
         // bool attachFile(std::string);  // open the named file
 
+        // NOTE place fn defn here in order for it to be inlined. 
+        // see https://stackoverflow.com/a/7883046/9894266
         inline char getChar() {
-
             return srcFile.get();
         }
 
-        bool isgood() {
-            // see https://stackoverflow.com/a/4533102/9894266
-            return srcFile.good(); 
-            /* return srcFile.good() && !this->isEOF(); */
-        }
+        bool isgood();
 
         void incLineCnt() {
         }
 
-        void ungetCh() {
-            srcFile.unget();
-        }
+        void ungetCh();
 
-        bool isEOF() {
-            // see https://stackoverflow.com/a/6283787/9894266
-
-            int c = srcFile.peek();
-            if (c == EOF) {
-                if (srcFile.eof())
-                    return true;
-                else
-                    // error ?
-                    // throw exception ?
-                    return true;
-            } else {
-                return false;
-            }
-        }
+        bool isEOF();
 
         // void incLineCnt();
         // void getLineCnt();
 };
 
+
+
+class LexicalAnalyzer {
+    public:
+        static LexicalAnalyzer* getInstance();
+
+        void removeWhitespace(inFile& srcFile);
+        bool isWhitespace(inFile& srcFile);
+        void consumeLineComment(inFile& srcFile);
+        bool ifStartBlockComment(inFile& srcFile);
+        bool ifEndBlockComment(inFile& srcFile);
+        void processComments(inFile& srcFile);
+        bool isComment(inFile& srcFile);
+        Token* buildToken(inFile& srcFile, SymbolTable& symTab);
+        void scan(inFile& srcFile);
+        void runLexer(std::string filename);
+
+    private:
+        static LexicalAnalyzer* instance_;
+        LexicalAnalyzer() = default;  // TODO or delete ?
+};
 
 #endif

@@ -2,20 +2,53 @@
 #include <cstdio>
 #include <cctype>
 
-
-void scan(inFile&);
-void runLexer(std::string);
-bool ifStartBlockComment(inFile&);
-bool ifEndBlockComment(inFile&);
-void consumeLineComment(inFile&);
-void processComments(inFile&);
-bool isComment(inFile&);
-bool isWhitespace(inFile&);
-void removeWhitespace(inFile&);
-Token* buildToken(inFile&, SymbolTable&);
+LexicalAnalyzer* LexicalAnalyzer::instance_ = nullptr;
 
 
-void runLexer(std::string filename) {
+LexicalAnalyzer* LexicalAnalyzer::getInstance() {
+
+    if (!instance_) {
+        instance_ = new LexicalAnalyzer();
+    }
+
+    return instance_;
+
+}
+
+bool inFile::isgood() {
+    // see https://stackoverflow.com/a/4533102/9894266
+    return srcFile.good(); 
+    /* return srcFile.good() && !this->isEOF(); */
+}
+
+
+bool inFile::isEOF() {
+    // see https://stackoverflow.com/a/6283787/9894266
+
+    int c = srcFile.peek();
+    if (c == EOF) {
+        if (srcFile.eof())
+            return true;
+        else
+            // error ?
+            // throw exception ?
+            return true;
+    } else {
+        return false;
+    }
+}
+
+inFile::inFile(std::string fileName)
+    : fileName{fileName} {
+        /* this.fileName = fileName; */
+        srcFile.open(fileName, std::ios_base::in);
+    }
+
+void inFile::ungetCh() {
+    srcFile.unget();
+}
+
+void LexicalAnalyzer::runLexer(std::string filename) {
 
     inFile srcfile("testfile");
 
@@ -36,19 +69,13 @@ void runLexer(std::string filename) {
     /*    } */
 
 }
-
 /* inline void readCharacterFromStream(std::ifstream& infile, char &ch) { */
 
 /*    infile.get(ch); */
 /* } */
 
 
-
-
-    /* dsfsdfsdf /* sdfsdf */
-    // sdfsdfsdf */ char weq;
-
-bool ifStartBlockComment(inFile& srcFile) {
+bool LexicalAnalyzer::ifStartBlockComment(inFile& srcFile) {
 
     char ch = srcFile.getChar();
 
@@ -72,7 +99,7 @@ bool ifStartBlockComment(inFile& srcFile) {
 }
 
 
-bool ifEndBlockComment(inFile& srcFile) {
+bool LexicalAnalyzer::ifEndBlockComment(inFile& srcFile) {
 
     char ch = srcFile.getChar();
 
@@ -95,8 +122,7 @@ bool ifEndBlockComment(inFile& srcFile) {
     return true;
 }
 
-
-void consumeLineComment(inFile& srcFile) {
+void LexicalAnalyzer::consumeLineComment(inFile& srcFile) {
 
     char ch;
 
@@ -118,7 +144,9 @@ void consumeLineComment(inFile& srcFile) {
 }
 
 
-void processComments(inFile& srcFile) {
+
+
+void LexicalAnalyzer::processComments(inFile& srcFile) {
     prerr("pc_");
     // next char onwards we have line or block comments
     //
@@ -184,7 +212,9 @@ void processComments(inFile& srcFile) {
     prerr("_pc");
 }
 
-void removeWhitespace(inFile& srcFile) {
+
+
+void LexicalAnalyzer::removeWhitespace(inFile& srcFile) {
 
     char ch;
 
@@ -205,7 +235,7 @@ void removeWhitespace(inFile& srcFile) {
     return;
 }
 
-bool isWhitespace(inFile& srcFile) {
+bool LexicalAnalyzer::isWhitespace(inFile& srcFile) {
     prerr("iw");
     std::cerr << srcFile.isgood() << std::endl;
 
@@ -225,7 +255,7 @@ bool isWhitespace(inFile& srcFile) {
 }
 
 
-void scan(inFile& srcFile) {
+void LexicalAnalyzer::scan(inFile& srcFile) {
 
     SymbolTable symTab;
 
@@ -249,7 +279,9 @@ void scan(inFile& srcFile) {
 }
 
 
-Token* buildToken(inFile& srcFile, SymbolTable& symTab) {
+
+
+Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
 
     prerr("bt");
 
@@ -357,7 +389,7 @@ Token* buildToken(inFile& srcFile, SymbolTable& symTab) {
 }
 
 
-bool isComment(inFile& srcFile) {
+bool LexicalAnalyzer::isComment(inFile& srcFile) {
 
     char ch = srcFile.getChar();
 
