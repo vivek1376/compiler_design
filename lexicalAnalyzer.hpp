@@ -5,6 +5,8 @@
 #include <fstream>
 #include <unordered_map>
 #include <iostream>
+#include <string>
+#include <vector>
 
 #include "token.hpp"
 #include "symbolTable.hpp"
@@ -63,12 +65,14 @@ class LexicalAnalyzer {
         void processComments(inFile& srcFile);
         bool isComment(inFile& srcFile);
         Token* buildToken(inFile& srcFile, SymbolTable& symTab);
-        void scan(inFile& srcFile);
+        void initSymbolTable();
+        Token* scan(inFile& srcFile);
         void runLexer(std::string filename);
 
     private:
         static LexicalAnalyzer* instance_;
         LexicalAnalyzer() = default;  // TODO or delete ?
+        SymbolTable symTab;
 };
 
 #endif

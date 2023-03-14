@@ -12,6 +12,7 @@ int main() {
     /* lexer->runLexer(filename); */
 
     /* runLexer(filename); */
+    LEXER->initSymbolTable();
     LEXER->runLexer(filename);
 
     return 0;

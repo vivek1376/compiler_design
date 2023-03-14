@@ -6,4 +6,3 @@
 void prerr(std::string st) {
     std::cerr << st << std::endl;
 }
-

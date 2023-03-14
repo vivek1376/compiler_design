@@ -21,6 +21,10 @@ bool inFile::isgood() {
     /* return srcFile.good() && !this->isEOF(); */
 }
 
+/* bool inFile::isEOF() { */
+/*     return srcFile.eof(); */
+/* } */
+
 
 bool inFile::isEOF() {
     // see https://stackoverflow.com/a/6283787/9894266
@@ -52,8 +56,12 @@ void LexicalAnalyzer::runLexer(std::string filename) {
 
     inFile srcfile("testfile");
 
+    while (srcfile.isgood()) {
     // scan(srcfile);
-    scan(srcfile);
+        std::cerr << "scanning..." << std::endl;
+        auto tok = scan(srcfile);
+        tok->printTokenString();
+    }
 
     std::cerr << "h8" << std::endl;
 
@@ -98,6 +106,37 @@ bool LexicalAnalyzer::ifStartBlockComment(inFile& srcFile) {
     return true;
 }
 
+void LexicalAnalyzer::initSymbolTable() {
+    Token *tok;
+
+    std::vector<std::pair<std::string, tokenType>> vec_rwToktype {
+        {"program", tokenType::PROGRAM_RW},
+        {"is", tokenType::IS_RW},
+        {"begin", tokenType::BEGIN_RW},
+        {"end", tokenType::END_RW},
+        {"global", tokenType::GLOBAL_RW},
+        {"procedure", tokenType::PROCEDURE_RW},
+        {"variable", tokenType::VARIABLE_RW},
+        {"integer", tokenType::INTEGER_RW},
+        {"float", tokenType::FLOAT_RW},
+        {"string", tokenType::STRING_RW},
+        {"bool", tokenType::BOOL_RW},
+        {"if", tokenType::IF_RW},
+        {"then", tokenType::THEN_RW},
+        {"else", tokenType::ELSE_RW},
+        {"for", tokenType::FOR_RW},
+        {"return", tokenType::RETURN_RW},
+        {"not", tokenType::NOT_RW},
+        {"true", tokenType::TRUE_RW},
+        {"false", tokenType::FALSE_RW}
+    };
+
+    for (auto p: vec_rwToktype) {
+        tok = symTab.lookupTokenString(p.first);
+        tok->setTokenType(p.second);
+        /* tok->setTokenType(tokenType:: */
+    }
+}
 
 bool LexicalAnalyzer::ifEndBlockComment(inFile& srcFile) {
 
@@ -255,7 +294,7 @@ bool LexicalAnalyzer::isWhitespace(inFile& srcFile) {
 }
 
 
-void LexicalAnalyzer::scan(inFile& srcFile) {
+Token* LexicalAnalyzer::scan(inFile& srcFile) {
 
     SymbolTable symTab;
 
@@ -275,7 +314,7 @@ void LexicalAnalyzer::scan(inFile& srcFile) {
     }
 
     // TODO check isgood() ?
-    buildToken(srcFile, symTab);
+    return buildToken(srcFile, symTab);
 }
 
 
@@ -290,10 +329,17 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
     /* prerr("isspace?"); */
     /* /1* std::cerr << srcFile.isgood() ; *1/ */
     /* std::cerr << std::isspace(ch) << std::endl; */
-
+    std::cerr << "ch is: [" << ch << "]" << std::endl;
     std::string tokenStr;
 
     switch (ch) {
+        // NOTE chars such as / . can be part of something else too. / can be start of a 
+        // comment, which is being handled separately outside of this function
+        case ';' : case '(' : case ')' : case ',' : case '[' : case ']' : case '_' :
+        case '&' : case '+' : case '-' : case '*' : case '/' : case '.':
+            return new Token(static_cast<tokenType>(ch), std::string{ch});
+            /* ch = srcFile.getChar(); */
+            /* if (ch */ 
         case '<':
             ch = srcFile.getChar();
             if (ch == '=') return new Token(tokenType::LESS_EQUAL, NULL);
@@ -352,8 +398,9 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
             srcFile.ungetCh();
 
             // identifier
-            return symTab.lookupTokenString(tokenStr);  // TODO no need to use new since lookup..()
-                                                        // creates IDENTIFIER token by default ?
+            return symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
+                                                        // lookup..() creates IDENTIFIER token 
+                                                        // by default ?
 
         case '"':
             tokenStr = "";
@@ -375,9 +422,14 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
             return new Token(tokenType::STRING, tokenStr);
 
         default:
+            std::cerr << "isgood? " << srcFile.isgood() << std::endl;
             std::cerr << "illegal character" << std::endl;
+
+            if (srcFile.isEOF()) {
+                return new Token(tokenType::EOFILE, std::string{ch});
+            }
             // TODO try again ?
-            return new Token(tokenType::INVALID, std::string(""));
+            return new Token(tokenType::INVALID, std::string{ch});
     }
     /* char ch = srcFile.getChar(); */
 
