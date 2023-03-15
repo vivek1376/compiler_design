@@ -18,7 +18,7 @@ enum tokenType {
     BOOL_RW = 1010, IF_RW = 1011, THEN_RW = 1012, ELSE_RW = 1013, 
     FOR_RW = 1014, RETURN_RW = 1015, 
     NOT_RW = 1016, TRUE_RW = 1017, FALSE_RW = 1018,  // rw over
-    SEMICOLON = ';', L_PAREN = '(', R_PAREN = ')', COMMA = ',',
+    COLON = ':', SEMICOLON = ';', L_PAREN = '(', R_PAREN = ')', COMMA = ',',
     L_BRACKET = '[', R_BRACKET = ']', UNDERSCORE = '_',
     ASSIGN_OP = 1019, 
     AMPERSAND = '&', PLUS = '+', MINUS = '-', LESS_THAN = '<', 
@@ -69,6 +69,7 @@ class Token {
                 {tokenType::NOT_RW, "NOT_RW"},
                 {tokenType::TRUE_RW, "TRUE_RW"},
                 {tokenType::FALSE_RW, "FALSE_RW"},
+                {tokenType::COLON, "COLON"},
                 {tokenType::SEMICOLON, "SEMICOLON"},
                 {tokenType::L_PAREN, "L_PAREN"},
                 {tokenType::R_PAREN, "R_PAREN"},

@@ -335,7 +335,9 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
     /* std::cerr << std::isspace(ch) << std::endl; */
     std::string tokenStr;
 
-    std::cout << "ch is: [" << ch << "]" << std::endl;
+    /* std::cout << "\nch is: [" << ch << "]" << std::endl; */
+
+    std::cout << "\n";
     Token *tok;
     switch (ch) {
         // NOTE chars such as / . can be part of something else too. / can be start of a 
@@ -349,6 +351,8 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
         case ':':
             ch = srcFile.getChar();
 
+            if (ch == ' ' || ch == '\t')
+                return new Token(tokenType::COLON, ":");
             if (ch == '=') 
                 return new Token(tokenType::ASSIGN_OP, ":=");
 
