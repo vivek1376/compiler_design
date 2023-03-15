@@ -5,7 +5,8 @@
 
 int main() {
 
-    std::string filename = "testfile";
+    std::string filename = "../project_description/testPgms/correct/source.src";
+    /* std::string filename = "ghfghhfgfgh"; */
 
     /* LexicalAnalyzer* lexer = LexicalAnalyzer::getInstance(); */
 

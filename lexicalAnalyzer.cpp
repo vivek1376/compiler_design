@@ -54,7 +54,7 @@ void inFile::ungetCh() {
 
 void LexicalAnalyzer::runLexer(std::string filename) {
 
-    inFile srcfile("testfile");
+    inFile srcfile(filename);
 
     while (srcfile.isgood()) {
     // scan(srcfile);
@@ -134,8 +134,12 @@ void LexicalAnalyzer::initSymbolTable() {
     for (auto p: vec_rwToktype) {
         tok = symTab.lookupTokenString(p.first);
         tok->setTokenType(p.second);
+
+        /* tok->printTokenString(); */
         /* tok->setTokenType(tokenType:: */
     }
+
+    /* std::cout << "done init..\n"; */
 }
 
 bool LexicalAnalyzer::ifEndBlockComment(inFile& srcFile) {
@@ -329,20 +333,31 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
     /* prerr("isspace?"); */
     /* /1* std::cerr << srcFile.isgood() ; *1/ */
     /* std::cerr << std::isspace(ch) << std::endl; */
-    std::cerr << "ch is: [" << ch << "]" << std::endl;
     std::string tokenStr;
 
+    std::cout << "ch is: [" << ch << "]" << std::endl;
+    Token *tok;
     switch (ch) {
         // NOTE chars such as / . can be part of something else too. / can be start of a 
         // comment, which is being handled separately outside of this function
         case ';' : case '(' : case ')' : case ',' : case '[' : case ']' : case '_' :
         case '&' : case '+' : case '-' : case '*' : case '/' : case '.':
+            std::cout << "1st case\n";
             return new Token(static_cast<tokenType>(ch), std::string{ch});
             /* ch = srcFile.getChar(); */
             /* if (ch */ 
+        case ':':
+            ch = srcFile.getChar();
+
+            if (ch == '=') 
+                return new Token(tokenType::ASSIGN_OP, ":=");
+
+            srcFile.ungetCh();
+            return new Token(tokenType::INVALID, std::string{':'}); 
+
         case '<':
             ch = srcFile.getChar();
-            if (ch == '=') return new Token(tokenType::LESS_EQUAL, NULL);
+            if (ch == '=') return new Token(tokenType::LESS_EQUAL, "<=");
 
             srcFile.ungetCh();
             return new Token(tokenType::LESS_THAN, NULL);
@@ -380,27 +395,32 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
                 /* return new Token(tokenType::INTEGER, symTab.lookupTokenString(tokenStr)); */
                 return new Token(tokenType::INTEGER, tokenStr);
             }
-
+        
+        case 'A' ... 'Z':
+            ch = std::tolower(ch);
+            // and, fall through, since identifiers, rw are case-insensitive
         case 'a' ... 'z':
-
+            std::cerr << "6th case\n";
             tokenStr = ch;
 
-            ch = srcFile.getChar();
+            ch = std::tolower(srcFile.getChar());
 
             while ((ch >= 'a' && ch <= 'z') ||
-                    (ch >= 'A' && ch <= 'Z') ||
+                    /* (ch >= 'A' && ch <= 'Z') || */
                     (ch >= '0' && ch <= '9') ||
                     ch == '_') {
                 tokenStr.push_back(ch);
-                ch = srcFile.getChar();
+                ch = std::tolower(srcFile.getChar());
             }
 
             srcFile.ungetCh();
 
             // identifier
-            return symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
+            tok = symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
+            /* tok->printTokenString(); */
+            return tok;
 
         case '"':
             tokenStr = "";

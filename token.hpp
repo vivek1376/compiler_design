@@ -9,19 +9,26 @@
 
 
 // TODO for single char token, use char values
+// use distinct values for each enum, make sure there's no conflict with
+// ascii values
 enum tokenType {
-    PROGRAM_RW, IS_RW, BEGIN_RW, END_RW, GLOBAL_RW, PROCEDURE_RW,
-    VARIABLE_RW, INTEGER_RW, FLOAT_RW, STRING_RW, BOOL_RW, 
-    IF_RW, THEN_RW, ELSE_RW, FOR_RW, RETURN_RW, NOT_RW, TRUE_RW, FALSE_RW,  // rw over
+    PROGRAM_RW = 1000, IS_RW = 1001, BEGIN_RW = 1002, END_RW = 1003, 
+    GLOBAL_RW = 1004, PROCEDURE_RW = 1005,
+    VARIABLE_RW = 1006, INTEGER_RW = 1007, FLOAT_RW = 1008, STRING_RW = 1009,
+    BOOL_RW = 1010, IF_RW = 1011, THEN_RW = 1012, ELSE_RW = 1013, 
+    FOR_RW = 1014, RETURN_RW = 1015, 
+    NOT_RW = 1016, TRUE_RW = 1017, FALSE_RW = 1018,  // rw over
     SEMICOLON = ';', L_PAREN = '(', R_PAREN = ')', COMMA = ',',
     L_BRACKET = '[', R_BRACKET = ']', UNDERSCORE = '_',
-    AMPERSAND = '&', PLUS = '+', MINUS = '-', LESS_THAN = '<', GREATER_EQUAL, LESS_EQUAL,
-    GREATER_THAN, EQUALS, NOT_EQUAL, MULTIPLY = '*', DIVIDE = '/',
+    ASSIGN_OP = 1019, 
+    AMPERSAND = '&', PLUS = '+', MINUS = '-', LESS_THAN = '<', 
+    GREATER_EQUAL = 1020, LESS_EQUAL = 1021,
+    GREATER_THAN = 1022, EQUALS = 1023, NOT_EQUAL = 1024, 
+    MULTIPLY = '*', DIVIDE = '/',
     /* QUOTE = '"',  // TODO no need for separate quote token ? */
     DOT = '.',  
-    IDENTIFIER,
-    INTEGER, FLOAT, STRING,
-    EOFILE, INVALID
+    IDENTIFIER = 1025,
+    INTEGER = 1026, FLOAT = 1027, STRING = 1028, EOFILE = 1029, INVALID = 1030
     // EOF? add more
 };
 
@@ -69,6 +76,7 @@ class Token {
                 {tokenType::L_BRACKET, "L_BRACKET"},
                 {tokenType::R_BRACKET, "R_BRACKET"},
                 {tokenType::UNDERSCORE, "UNDERSCORE"},
+                {tokenType::ASSIGN_OP, "ASSIGN_OP"},
                 {tokenType::AMPERSAND, "AMPERSAND"},
                 {tokenType::PLUS, "PLUS"},
                 {tokenType::MINUS, "MINUS"},
