@@ -322,7 +322,9 @@ Token* LexicalAnalyzer::scan(inFile& srcFile) {
 }
 
 
-
+SymbolTable& LexicalAnalyzer::getSymbolTable() {
+    return symTab;
+}
 
 Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
 
@@ -417,6 +419,7 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
         
         case 'A' ... 'Z':
             ch = std::tolower(ch);
+            /* ch = 3; */
             // and, fall through, since identifiers, rw are case-insensitive
         case 'a' ... 'z':
             std::cerr << "6th case\n";

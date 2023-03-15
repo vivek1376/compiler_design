@@ -14,7 +14,8 @@ int main() {
 
     /* runLexer(filename); */
     LEXER->initSymbolTable();
-    LEXER->runLexer(filename);
+    LEXER->getSymbolTable().printTable();
+    /* LEXER->runLexer(filename); */
 
     return 0;
 }

@@ -24,6 +24,12 @@ class SymbolTable {
 
         }
 
+        void printTable() {
+            for (auto p: symTab) {
+                p.second->printTokenString();
+            }
+        }
+
 };
 
 #endif
