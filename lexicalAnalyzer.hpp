@@ -67,6 +67,7 @@ class LexicalAnalyzer {
         Token* buildToken(inFile& srcFile, SymbolTable& symTab);
         void initSymbolTable();
         Token* scan(inFile& srcFile);
+        bool ifThisChar(char ch);
         void runLexer(std::string filename);
 
     private:

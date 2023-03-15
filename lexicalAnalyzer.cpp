@@ -357,7 +357,7 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
                 return new Token(tokenType::ASSIGN_OP, ":=");
 
             srcFile.ungetCh();
-            return new Token(tokenType::INVALID, std::string{':'}); 
+            return new Token(tokenType::INVALID, std::string{ch}); 
 
         case '<':
             ch = srcFile.getChar();
@@ -365,6 +365,21 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
 
             srcFile.ungetCh();
             return new Token(tokenType::LESS_THAN, NULL);
+
+        case '>':
+            ch = srcFile.getChar();
+            if (ch == '=') return new Token(tokenType::GREATER_EQUAL, ">=");
+
+            srcFile.ungetCh();
+            return new Token(tokenType::GREATER_THAN, ">");
+
+        case '=':
+            ch = srcFile.getChar();
+
+            if (ch == '=') return new Token(tokenType::EQUALS, "==");
+
+            srcFile.ungetCh();
+            return new Token(tokenType::INVALID, std::string{ch});
 
         case '0' ... '9':  // TODO check if correct syntax
             tokenStr = ch;
@@ -432,18 +447,22 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
             ch = srcFile.getChar();
 
             // TODO permit " in string ?
-
-            while (ch != '"') {
+            // unmached opening quote can lead to infinite loop, so check if reached EOF etc.
+            while (ch != '"' && srcFile.isgood()) {
                 tokenStr.push_back(ch);
                 ch = srcFile.getChar();
             }
 
-            srcFile.ungetCh();
+            if (ch == '"') {
+                return new Token(tokenType::STRING, tokenStr);
+            } else {
+                srcFile.ungetCh();
+                return new Token(tokenType::INVALID, tokenStr);
+            }
 
             /* return symTab.lookupTokenString(tokenStr); */
             /* return new Token(tokenType::STRING, symTab.lookupTokenString(tokenStr)); */
             // NOTE: not bothering with tables for now
-            return new Token(tokenType::STRING, tokenStr);
 
         default:
             std::cerr << "isgood? " << srcFile.isgood() << std::endl;
