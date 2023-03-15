@@ -29,7 +29,7 @@ enum tokenType {
     DOT = '.',  
     IDENTIFIER = 1025,
     INTEGER = 1026, FLOAT = 1027, STRING = 1028, EOFILE = 1029, INVALID = 1030
-    // EOF? add more
+        // EOF? add more
 };
 
 
@@ -102,25 +102,15 @@ class Token {
 
         Token() = delete;
 
-        Token(tokenType ttype, std::string tokenStr) {
-            this->tokenStr = tokenStr;
-            this->ttype = ttype;
-        }
+        Token(tokenType ttype, std::string tokenStr);
+        /* Token(tokenType ttype, Token* tok) { */
+        /*     if (tok != NULL) { */
+        /*         tok->ttype = ttype; */
+        /*     } */
+        /* } */
 
-        Token(tokenType ttype, Token* tok) {
-            if (tok != NULL) {
-                tok->ttype = ttype;
-            }
-        }
-
-        void setTokenType(tokenType ttype) {
-            this->ttype = ttype;
-        }
-
-        void printTokenString() {
-            std::cout << "[" << map_ttypeStr[this->ttype] << "]";
-            std::cout << "" << this->tokenStr << std::endl;
-        }
+        void setTokenType(tokenType ttype);
+        void printToken();
 };
 
 

@@ -10,25 +10,14 @@
 
 class SymbolTable {
     private:
-        std::unordered_map<std::string, Token*> symTab;
+        std::unordered_map<std::string, Token*> map_symTab;
 
     public:
-        Token* lookupTokenString(std::string tokenStr) {
+        Token* lookupTokenString(std::string tokenStr);
 
-            if (symTab.find(tokenStr) != symTab.end()) {
-                return symTab.find(tokenStr)->second;
-            }
+        void printTable();
 
-            return symTab.insert(std::make_pair(tokenStr, 
-                        new Token(tokenType::IDENTIFIER, tokenStr))).first->second;
-
-        }
-
-        void printTable() {
-            for (auto p: symTab) {
-                p.second->printTokenString();
-            }
-        }
+        void printAllKeys();
 
 };
 

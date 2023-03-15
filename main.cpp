@@ -15,7 +15,29 @@ int main() {
     /* runLexer(filename); */
     LEXER->initSymbolTable();
     LEXER->getSymbolTable().printTable();
-    /* LEXER->runLexer(filename); */
+
+    std::cout << "done printing init symbols..\n\n";
+
+/*     auto tok = LEXER->getSymbolTable().lookupTokenString("program"); */
+/*     tok->printToken(); */
+
+    /* tok = LEXER->getSymbolTable().lookupTokenString("program"); */
+    /* tok->printToken(); */
+
+    std::cout << "starting lexer...\n";
+    LEXER->runLexer(filename);
+
+    std::cout << "done lexer...\n";
+
+    LEXER->getSymbolTable().lookupTokenString("program")->printToken();
+
+    std::cout << "print all keys:\n";
+
+    LEXER->getSymbolTable().printAllKeys();
+
+
+    std::cout << "printing table again..\n\n";
+    LEXER->getSymbolTable().printTable();
 
     return 0;
 }

@@ -64,12 +64,15 @@ class LexicalAnalyzer {
         bool ifEndBlockComment(inFile& srcFile);
         void processComments(inFile& srcFile);
         bool isComment(inFile& srcFile);
-        Token* buildToken(inFile& srcFile, SymbolTable& symTab);
+        Token* buildToken(inFile& srcFile);
         void initSymbolTable();
         Token* scan(inFile& srcFile);
         bool ifThisChar(char ch);
         void runLexer(std::string filename);
         SymbolTable& getSymbolTable();
+
+        LexicalAnalyzer(LexicalAnalyzer const&) = delete;
+        LexicalAnalyzer& operator=(LexicalAnalyzer const&) = delete;
 
     private:
         static LexicalAnalyzer* instance_;

@@ -60,7 +60,7 @@ void LexicalAnalyzer::runLexer(std::string filename) {
     // scan(srcfile);
         std::cerr << "scanning..." << std::endl;
         auto tok = scan(srcfile);
-        tok->printTokenString();
+        tok->printToken();
     }
 
     std::cerr << "h8" << std::endl;
@@ -300,7 +300,7 @@ bool LexicalAnalyzer::isWhitespace(inFile& srcFile) {
 
 Token* LexicalAnalyzer::scan(inFile& srcFile) {
 
-    SymbolTable symTab;
+    /* SymbolTable symTab; */
 
     while (srcFile.isgood()) {  // TODO or just true
         prerr("sc1");
@@ -318,7 +318,7 @@ Token* LexicalAnalyzer::scan(inFile& srcFile) {
     }
 
     // TODO check isgood() ?
-    return buildToken(srcFile, symTab);
+    return buildToken(srcFile);
 }
 
 
@@ -326,7 +326,7 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
     return symTab;
 }
 
-Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
+Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
 
     prerr("bt");
 
@@ -346,7 +346,7 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
         // comment, which is being handled separately outside of this function
         case ';' : case '(' : case ')' : case ',' : case '[' : case ']' : case '_' :
         case '&' : case '+' : case '-' : case '*' : case '/' : case '.':
-            std::cout << "1st case\n";
+            /* std::cout << "1st case\n"; */
             return new Token(static_cast<tokenType>(ch), std::string{ch});
             /* ch = srcFile.getChar(); */
             /* if (ch */ 
@@ -438,11 +438,15 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
             srcFile.ungetCh();
 
             // identifier
-            tok = symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
+            std::cout << "going to lookup..\n";
+            return symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
+            /* tok->setTokenType(tokenType::PROGRAM_RW); */
+            /* std::cout << "token string is: " << tokenStr << std::endl; */
+            /* symTab.lookupTokenString("program")->printToken(); */
+            /* symTab.printAllKeys(); */
             /* tok->printTokenString(); */
-            return tok;
 
         case '"':
             tokenStr = "";
@@ -450,7 +454,7 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile, SymbolTable& symTab) {
             ch = srcFile.getChar();
 
             // TODO permit " in string ?
-            // unmached opening quote can lead to infinite loop, so check if reached EOF etc.
+            // unmatched opening quote can lead to infinite loop, so check if reached EOF etc.
             while (ch != '"' && srcFile.isgood()) {
                 tokenStr.push_back(ch);
                 ch = srcFile.getChar();
