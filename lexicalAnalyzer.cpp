@@ -12,13 +12,6 @@ LexicalAnalyzer* LexicalAnalyzer::getInstance() {
     return instance_;
 
 }
-
-bool inFile::isgood() {
-    // see https://stackoverflow.com/a/4533102/9894266
-    return srcFile->good(); 
-    /* return srcFile.good() && !this->isEOF(); */
-}
-
 /* bool inFile::isEOF() { */
 /*     return srcFile.eof(); */
 /* } */
@@ -28,7 +21,7 @@ void LexicalAnalyzer::runLexer() {
 
     while (srcFile->isgood()) {
         std::cerr << "scanning..." << std::endl;
-        auto tok = scan(srcFile);
+        auto tok = scan();
         tok->printToken();
     }
 
@@ -172,7 +165,7 @@ void LexicalAnalyzer::processComments() {
 
     // first process line comments
     if (srcFile->getChar() == '/') {
-        consumeLineComment(srcFile);
+        consumeLineComment();
         std::cerr << "h4" << std::endl;
         // the file pointer is pointing to the first char of the next line
         // after the line comment
@@ -200,7 +193,7 @@ void LexicalAnalyzer::processComments() {
 
         ifInc = true;
 
-        if (ifStartBlockComment(srcFile)) {
+        if (ifStartBlockComment()) {
             srcFile->getChar();
             srcFile->getChar();
             prerr("start block");
@@ -208,7 +201,7 @@ void LexicalAnalyzer::processComments() {
             ifInc = false;  // since file pos has moved, do not increment explicitly
         }
 
-        if (ifEndBlockComment(srcFile)) {
+        if (ifEndBlockComment()) {
             srcFile->getChar();
             srcFile->getChar();
             prerr("end block");
@@ -276,18 +269,18 @@ Token* LexicalAnalyzer::scan() {
 
         std::cerr << "h1" << std::endl;
 
-        if (isWhitespace(srcFile)) removeWhitespace(srcFile);
+        if (isWhitespace()) removeWhitespace();
 
-        if (isComment(srcFile)) processComments(srcFile);
+        if (isComment()) processComments();
 
         // what if multiple line comments or multiple block-comments
         // so, use while loop
 
-        if (!isWhitespace(srcFile) && !isComment(srcFile)) break;
+        if (!isWhitespace() && !isComment()) break;
     }
 
     // TODO check isgood() ?
-    return buildToken(srcFile);
+    return buildToken();
 }
 
 
