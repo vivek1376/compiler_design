@@ -1,6 +1,4 @@
 #include "lexicalAnalyzer.hpp"
-#include <cstdio>
-#include <cctype>
 
 LexicalAnalyzer* LexicalAnalyzer::instance_ = nullptr;
 
@@ -17,7 +15,7 @@ LexicalAnalyzer* LexicalAnalyzer::getInstance() {
 
 bool inFile::isgood() {
     // see https://stackoverflow.com/a/4533102/9894266
-    return srcFile.good(); 
+    return srcFile->good(); 
     /* return srcFile.good() && !this->isEOF(); */
 }
 
@@ -26,40 +24,11 @@ bool inFile::isgood() {
 /* } */
 
 
-bool inFile::isEOF() {
-    // see https://stackoverflow.com/a/6283787/9894266
+void LexicalAnalyzer::runLexer() {
 
-    int c = srcFile.peek();
-    if (c == EOF) {
-        if (srcFile.eof())
-            return true;
-        else
-            // error ?
-            // throw exception ?
-            return true;
-    } else {
-        return false;
-    }
-}
-
-inFile::inFile(std::string fileName)
-    : fileName{fileName} {
-        /* this.fileName = fileName; */
-        srcFile.open(fileName, std::ios_base::in);
-    }
-
-void inFile::ungetCh() {
-    srcFile.unget();
-}
-
-void LexicalAnalyzer::runLexer(std::string filename) {
-
-    inFile srcfile(filename);
-
-    while (srcfile.isgood()) {
-    // scan(srcfile);
+    while (srcFile->isgood()) {
         std::cerr << "scanning..." << std::endl;
-        auto tok = scan(srcfile);
+        auto tok = scan(srcFile);
         tok->printToken();
     }
 
@@ -83,25 +52,25 @@ void LexicalAnalyzer::runLexer(std::string filename) {
 /* } */
 
 
-bool LexicalAnalyzer::ifStartBlockComment(inFile& srcFile) {
+bool LexicalAnalyzer::ifStartBlockComment() {
 
-    char ch = srcFile.getChar();
+    char ch = srcFile->getChar();
 
     if (ch != '/') {
-        srcFile.ungetCh();
+        srcFile->ungetCh();
         return false;
     }
 
-    ch = srcFile.getChar();
+    ch = srcFile->getChar();
 
     if (ch != '*') {
-        srcFile.ungetCh();
-        srcFile.ungetCh();
+        srcFile->ungetCh();
+        srcFile->ungetCh();
         return false;
     }
 
-    srcFile.ungetCh();
-    srcFile.ungetCh();
+    srcFile->ungetCh();
+    srcFile->ungetCh();
 
     return true;
 }
@@ -142,40 +111,40 @@ void LexicalAnalyzer::initSymbolTable() {
     /* std::cout << "done init..\n"; */
 }
 
-bool LexicalAnalyzer::ifEndBlockComment(inFile& srcFile) {
+bool LexicalAnalyzer::ifEndBlockComment() {
 
-    char ch = srcFile.getChar();
+    char ch = srcFile->getChar();
 
     if (ch != '*') {
-        srcFile.ungetCh();
+        srcFile->ungetCh();
         return false;
     }
 
-    ch = srcFile.getChar();
+    ch = srcFile->getChar();
 
     if (ch != '/') {
-        srcFile.ungetCh();
-        srcFile.ungetCh();
+        srcFile->ungetCh();
+        srcFile->ungetCh();
         return false;
     }
 
-    srcFile.ungetCh();
-    srcFile.ungetCh();
+    srcFile->ungetCh();
+    srcFile->ungetCh();
 
     return true;
 }
 
-void LexicalAnalyzer::consumeLineComment(inFile& srcFile) {
+void LexicalAnalyzer::consumeLineComment() {
 
     char ch;
 
-    while (srcFile.isgood()) {
+    while (srcFile->isgood()) {
 
         // TODO comment this out ?
         /* if (srcFile.isEOF()) {std::cerr << "isEOF"; return; } */
 
         std::cerr << "h3" << std::endl;
-        ch = srcFile.getChar();
+        ch = srcFile->getChar();
         if (ch == '\n') {
             // TODO unget ? no, since its a whitespace char, consider it a
             // part of the line comment
@@ -189,7 +158,7 @@ void LexicalAnalyzer::consumeLineComment(inFile& srcFile) {
 
 
 
-void LexicalAnalyzer::processComments(inFile& srcFile) {
+void LexicalAnalyzer::processComments() {
     prerr("pc_");
     // next char onwards we have line or block comments
     //
@@ -197,12 +166,12 @@ void LexicalAnalyzer::processComments(inFile& srcFile) {
     // for block comment keep a count to match nested comments
 
     // discard first char, since we know it is / for both block and line comment
-    srcFile.getChar();
+    srcFile->getChar();
 
     // we need to read 2nd char to determine if its line or block comment
 
     // first process line comments
-    if (srcFile.getChar() == '/') {
+    if (srcFile->getChar() == '/') {
         consumeLineComment(srcFile);
         std::cerr << "h4" << std::endl;
         // the file pointer is pointing to the first char of the next line
@@ -214,8 +183,8 @@ void LexicalAnalyzer::processComments(inFile& srcFile) {
     // only process matching pairs, i.e. /* */*/ or /* /* */ won't be handled
 
     // reset two times to get to start of comment block
-    srcFile.ungetCh();
-    srcFile.ungetCh();
+    srcFile->ungetCh();
+    srcFile->ungetCh();
 
     int cnt = 0;  // to match open/close block comment
 
@@ -223,25 +192,25 @@ void LexicalAnalyzer::processComments(inFile& srcFile) {
     bool ifInc;  // in case we didnt find open/close block comment from current
                  // position in file, use this flag to increment file pos by 1 character
 
-    while (srcFile.isgood()) {
+    while (srcFile->isgood()) {
         prerr("pc2");
-        ch = srcFile.getChar();
-        srcFile.ungetCh();
+        ch = srcFile->getChar();
+        srcFile->ungetCh();
         std::cerr << "<" << ch << ">" << std::endl;
 
         ifInc = true;
 
         if (ifStartBlockComment(srcFile)) {
-            srcFile.getChar();
-            srcFile.getChar();
+            srcFile->getChar();
+            srcFile->getChar();
             prerr("start block");
             cnt++;
             ifInc = false;  // since file pos has moved, do not increment explicitly
         }
 
         if (ifEndBlockComment(srcFile)) {
-            srcFile.getChar();
-            srcFile.getChar();
+            srcFile->getChar();
+            srcFile->getChar();
             prerr("end block");
             cnt--;
             ifInc = false;
@@ -249,7 +218,7 @@ void LexicalAnalyzer::processComments(inFile& srcFile) {
 
         if (cnt == 0) break;
 
-        if (ifInc) srcFile.getChar();  // read a char and discard
+        if (ifInc) srcFile->getChar();  // read a char and discard
     }
 
     prerr("_pc");
@@ -257,33 +226,33 @@ void LexicalAnalyzer::processComments(inFile& srcFile) {
 
 
 
-void LexicalAnalyzer::removeWhitespace(inFile& srcFile) {
+void LexicalAnalyzer::removeWhitespace() {
 
     char ch;
 
-    while (srcFile.isgood()) {
-        ch = srcFile.getChar();
+    while (srcFile->isgood()) {
+        ch = srcFile->getChar();
 
         if (!std::isspace(ch))
             break;
 
         if (ch == '\n')
-            srcFile.incLineCnt();
+            srcFile->incLineCnt();
     }
 
     // we are pointing to a non-whitespace character; or EOF ?
 
-    srcFile.ungetCh();
+    srcFile->ungetCh();
 
     return;
 }
 
-bool LexicalAnalyzer::isWhitespace(inFile& srcFile) {
+bool LexicalAnalyzer::isWhitespace() {
     prerr("iw");
-    std::cerr << srcFile.isgood() << std::endl;
+    std::cerr << srcFile->isgood() << std::endl;
 
-    char ch = srcFile.getChar();
-    srcFile.ungetCh();
+    char ch = srcFile->getChar();
+    srcFile->ungetCh();
 
     std::cerr << "[" << ch << "]" << std::endl;
 
@@ -298,11 +267,11 @@ bool LexicalAnalyzer::isWhitespace(inFile& srcFile) {
 }
 
 
-Token* LexicalAnalyzer::scan(inFile& srcFile) {
+Token* LexicalAnalyzer::scan() {
 
     /* SymbolTable symTab; */
 
-    while (srcFile.isgood()) {  // TODO or just true
+    while (srcFile->isgood()) {  // TODO or just true
         prerr("sc1");
 
         std::cerr << "h1" << std::endl;
@@ -326,11 +295,11 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
     return symTab;
 }
 
-Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
+Token* LexicalAnalyzer::buildToken() {
 
     prerr("bt");
 
-    char ch = srcFile.getChar(), nextCh;
+    char ch = srcFile->getChar(), nextCh;
     /* std::cerr << "ch: " << ch; */
     /* prerr("isspace?"); */
     /* /1* std::cerr << srcFile.isgood() ; *1/ */
@@ -351,69 +320,69 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
             /* ch = srcFile.getChar(); */
             /* if (ch */ 
         case ':':
-            ch = srcFile.getChar();
+            ch = srcFile->getChar();
 
             /* if (ch == ' ' || ch == '\t') */
             /*     return new Token(tokenType::COLON, ":"); */
             if (ch == '=') 
                 return new Token(tokenType::ASSIGN_OP, ":=");
 
-            srcFile.ungetCh();
+            srcFile->ungetCh();
             return new Token(tokenType::COLON, ":");
             /* srcFile.ungetCh(); */
             /* return new Token(tokenType::INVALID, std::string{ch}); */ 
 
         case '<':
-            ch = srcFile.getChar();
+            ch = srcFile->getChar();
             if (ch == '=') return new Token(tokenType::LESS_EQUAL, "<=");
 
-            srcFile.ungetCh();
+            srcFile->ungetCh();
             return new Token(tokenType::LESS_THAN, "<");
 
         case '>':
-            ch = srcFile.getChar();
+            ch = srcFile->getChar();
             if (ch == '=') return new Token(tokenType::GREATER_EQUAL, ">=");
 
-            srcFile.ungetCh();
+            srcFile->ungetCh();
             return new Token(tokenType::GREATER_THAN, ">");
 
         case '=':
-            ch = srcFile.getChar();
+            ch = srcFile->getChar();
 
             if (ch == '=') return new Token(tokenType::EQUALS, "==");
 
-            srcFile.ungetCh();
+            srcFile->ungetCh();
             return new Token(tokenType::INVALID, std::string{ch});
 
         case '0' ... '9':  // TODO check if correct syntax
             tokenStr = ch;
 
-            ch = srcFile.getChar();
+            ch = srcFile->getChar();
             while (ch >= '0' && ch <= '9') {
                 tokenStr.push_back(ch);
-                ch = srcFile.getChar();
+                ch = srcFile->getChar();
             }
 
             if (ch == '.') {
                 tokenStr.push_back('.');
-                ch = srcFile.getChar();
+                ch = srcFile->getChar();
                 /* bool dotAppended = false;  // TODO use ? */
 
                 while (ch >= '0' && ch <= '9') {
 
                     tokenStr.push_back(ch);
-                    ch = srcFile.getChar();
+                    ch = srcFile->getChar();
                 }
 
                 // TODO add handling for invalid strings such as 1.
 
-                srcFile.ungetCh();
+                srcFile->ungetCh();
                 /* return new Token(tokenType::FLOAT, tokenStr); */
                 // NOTE: not bothering with tables for now
                 /* return new Token(tokenType::FLOAT, symTab.lookupTokenString(tokenStr));  // TODO ask */
                 return new Token(tokenType::FLOAT, tokenStr);
             } else {
-                srcFile.ungetCh();
+                srcFile->ungetCh();
                 /* return new Token(tokenType::INTEGER, tokenStr); */
                 /* return new Token(tokenType::INTEGER, symTab.lookupTokenString(tokenStr)); */
                 return new Token(tokenType::INTEGER, tokenStr);
@@ -427,17 +396,17 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
             std::cerr << "6th case\n";
             tokenStr = ch;
 
-            ch = std::tolower(srcFile.getChar());
+            ch = std::tolower(srcFile->getChar());
 
             while ((ch >= 'a' && ch <= 'z') ||
                     /* (ch >= 'A' && ch <= 'Z') || */
                     (ch >= '0' && ch <= '9') ||
                     ch == '_') {
                 tokenStr.push_back(ch);
-                ch = std::tolower(srcFile.getChar());
+                ch = std::tolower(srcFile->getChar());
             }
 
-            srcFile.ungetCh();
+            srcFile->ungetCh();
 
             // identifier
             /* std::cout << "going to lookup..\n"; */
@@ -453,19 +422,19 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
         case '"':
             tokenStr = "";
 
-            ch = srcFile.getChar();
+            ch = srcFile->getChar();
 
             // TODO permit " in string ?
             // unmatched opening quote can lead to infinite loop, so check if reached EOF etc.
-            while (ch != '"' && srcFile.isgood()) {
+            while (ch != '"' && srcFile->isgood()) {
                 tokenStr.push_back(ch);
-                ch = srcFile.getChar();
+                ch = srcFile->getChar();
             }
 
             if (ch == '"') {
                 return new Token(tokenType::STRING, tokenStr);
             } else {
-                srcFile.ungetCh();
+                srcFile->ungetCh();
                 return new Token(tokenType::INVALID, tokenStr);
             }
 
@@ -474,10 +443,10 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
             // NOTE: not bothering with tables for now
 
         default:
-            std::cerr << "isgood? " << srcFile.isgood() << std::endl;
+            std::cerr << "isgood? " << srcFile->isgood() << std::endl;
             std::cerr << "illegal character" << std::endl;
 
-            if (srcFile.isEOF()) {
+            if (srcFile->isEOF()) {
                 return new Token(tokenType::EOFILE, std::string{ch});
             }
             // TODO try again ?
@@ -493,30 +462,34 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
 }
 
 
-bool LexicalAnalyzer::isComment(inFile& srcFile) {
+bool LexicalAnalyzer::isComment() {
 
-    char ch = srcFile.getChar();
+    char ch = srcFile->getChar();
 
     if (ch != '/') {
-        srcFile.ungetCh();
+        srcFile->ungetCh();
         return false;
     }
 
-    ch = srcFile.getChar();
+    ch = srcFile->getChar();
 
     prerr("isc2");
     if (ch != '/' && ch != '*') {
-        srcFile.ungetCh();
-        srcFile.ungetCh();
+        srcFile->ungetCh();
+        srcFile->ungetCh();
         return false;
     }
 
     prerr("isc3");
     // reset to start of comment
 
-    srcFile.ungetCh();
-    srcFile.ungetCh();
+    srcFile->ungetCh();
+    srcFile->ungetCh();
 
     /* prerr("this_is_comment"); */
     return true;
+}
+
+void LexicalAnalyzer::setinFile(inFile* infile) {
+    this->srcFile = infile;
 }
