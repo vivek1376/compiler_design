@@ -2,9 +2,9 @@
 
 
 Token* SymbolTable::lookupTokenString(std::string tokenStr) {
-    std::cout << "inside lookup()...\n";
+    /* std::cout << "inside lookup()...\n"; */
     if (map_symTab.find(tokenStr) != map_symTab.end()) {
-        std::cout << "found existing token..\n";
+        /* std::cout << "found existing token..\n"; */
         return map_symTab.find(tokenStr)->second;
     }
 
@@ -12,7 +12,7 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr) {
     /* return map_symTab.insert(std::make_pair(tokenStr, */ 
     /*             new Token(tokenType::IDENTIFIER, tokenStr))).first->second; */
 
-    std::cout << "inserting new token...\n";
+    /* std::cout << "inserting new token...\n"; */
     map_symTab.insert(std::make_pair(tokenStr, 
                 new Token(tokenType::IDENTIFIER, tokenStr)));
 

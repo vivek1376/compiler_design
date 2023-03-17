@@ -5,7 +5,7 @@
 
 int main() {
 
-    std::string filename = "../project_description/testPgms/correct/source.src";
+    std::string filename = "../project_description/testPgms/correct/iterativeFib.src";
     /* std::string filename = "ghfghhfgfgh"; */
 
     /* LexicalAnalyzer* lexer = LexicalAnalyzer::getInstance(); */
@@ -14,7 +14,7 @@ int main() {
 
     /* runLexer(filename); */
     LEXER->initSymbolTable();
-    LEXER->getSymbolTable().printTable();
+    /* LEXER->getSymbolTable().printTable(); */
 
     std::cout << "done printing init symbols..\n\n";
 
@@ -29,15 +29,15 @@ int main() {
 
     std::cout << "done lexer...\n";
 
-    LEXER->getSymbolTable().lookupTokenString("program")->printToken();
+    /* LEXER->getSymbolTable().lookupTokenString("program")->printToken(); */
 
-    std::cout << "print all keys:\n";
+    /* std::cout << "print all keys:\n"; */
 
-    LEXER->getSymbolTable().printAllKeys();
+    /* LEXER->getSymbolTable().printAllKeys(); */
 
 
-    std::cout << "printing table again..\n\n";
-    LEXER->getSymbolTable().printTable();
+    /* std::cout << "printing table again..\n\n"; */
+    /* LEXER->getSymbolTable().printTable(); */
 
     return 0;
 }

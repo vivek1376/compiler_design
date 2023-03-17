@@ -353,20 +353,22 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
         case ':':
             ch = srcFile.getChar();
 
-            if (ch == ' ' || ch == '\t')
-                return new Token(tokenType::COLON, ":");
+            /* if (ch == ' ' || ch == '\t') */
+            /*     return new Token(tokenType::COLON, ":"); */
             if (ch == '=') 
                 return new Token(tokenType::ASSIGN_OP, ":=");
 
             srcFile.ungetCh();
-            return new Token(tokenType::INVALID, std::string{ch}); 
+            return new Token(tokenType::COLON, ":");
+            /* srcFile.ungetCh(); */
+            /* return new Token(tokenType::INVALID, std::string{ch}); */ 
 
         case '<':
             ch = srcFile.getChar();
             if (ch == '=') return new Token(tokenType::LESS_EQUAL, "<=");
 
             srcFile.ungetCh();
-            return new Token(tokenType::LESS_THAN, NULL);
+            return new Token(tokenType::LESS_THAN, "<");
 
         case '>':
             ch = srcFile.getChar();
@@ -438,7 +440,7 @@ Token* LexicalAnalyzer::buildToken(inFile& srcFile) {
             srcFile.ungetCh();
 
             // identifier
-            std::cout << "going to lookup..\n";
+            /* std::cout << "going to lookup..\n"; */
             return symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
