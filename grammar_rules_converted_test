@@ -1,0 +1,75 @@
+        whole_program -> program_header program_body .
+       program_header -> program identifier is
+         program_body -> ( declaration ; )* begin ( statement ; )* end program
+          declaration -> [ global ] procedure_declaration
+                       | [ global ] variable_declaration
+procedure_declaration -> procedure_header procedure_body
+     procedure_header -> procedure identifier : type_mark ( [parameter_list] )
+       parameter_list -> parameter, parameter_list
+                       | parameter
+            parameter -> variable_declaration
+       procedure_body -> ( declaration ; )* begin ( statement ; )* end procedure
+ variable_declaration -> variable identifier : type_mark [ [ bound ] ]
+            type_mark -> integer
+                       | float
+                       | string
+                       | bool
+                bound -> number
+            statement -> assignment_statement
+                       | if_statement
+                       | loop_statement
+                       | return_statement
+      procedure_call> -> identifier ( [argument_list>] )
+ assignment_statement -> destination := expression
+          destination -> identifier [ [ expression> ] ]
+         if_statement -> if ( expression ) then ( statement ; )* [ else ( statement ; )* ] end if
+       loop_statement -> for ( assignment_statement ; expression ) ( statement ; )* end for
+     return_statement -> return expression
+           identifier -> [a-zA-Z][a-zA-Z0-9_]*
+           expression -> arithOp expression'
+                       | [ not ] arithOp expression'
+              arithOp -> relation arithOp'
+             relation -> term relation'
+                 term -> factor term'
+               factor -> ( expression )
+                       | procedure_call
+                       | [ - ] name
+                       | [ - ] number
+                       | string
+                       | true
+                       | false
+                 name -> [a-zA-Z][a-zA-Z0-9_]* [ [ expression ] ]
+        argument_list -> ( expression ) term' relation' arithOp' expression' , argument_list
+                       | procedure_call term' relation' arithOp' expression' , argument_list
+                       | [ - ] name term' relation' arithOp' expression' , argument_list
+                       | [ - ] number term' relation' arithOp' expression' , argument_list
+                       | string term' relation' arithOp' expression' , argument_list
+                       | true term' relation' arithOp' expression' , argument_list
+                       | false term' relation' arithOp' expression' , argument_list
+                       | [ not ] arithOp expression' , argument_list
+                       | ( expression ) term' relation' arithOp' expression'
+                       | procedure_call term' relation' arithOp' expression'
+                       | [ - ] name term' relation' arithOp' expression'
+                       | [ - ] number term' relation' arithOp' expression'
+                       | string term' relation' arithOp' expression'
+                       | true term' relation' arithOp' expression'
+                       | false term' relation' arithOp' expression'
+                       | [ not ] arithOp expression'
+               number -> [0-9][0-9_]*[.[0-9_]*]
+               string -> "[^"]*"
+          expression' -> & arithOp expression'
+                       | expression'
+                       | ϵ
+             arithOp' -> + relation arithOp'
+                       | - relation arithOp'
+                       | ϵ
+            relation' -> < term relation'
+                       | >= term relation'
+                       | <= term relation'
+                       | > term relation'
+                       | == term relation'
+                       | != term relation'
+                       | ϵ
+                term' -> * factor term'
+                       | / factor term'
+                       | ϵ

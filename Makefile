@@ -1,5 +1,5 @@
-main: main.o lexicalAnalyzer.o helperFunctions.o symbolTable.o token.o parser.o inFile.o
-	g++ -std=c++14 -Wall -o main main.o lexicalAnalyzer.o helperFunctions.o symbolTable.o token.o parser.o inFile.o
+main: main.o lexicalAnalyzer.o helperFunctions.o symbolTable.o token.o parser.o inFile.o prodRetType.o
+	g++ -std=c++14 -Wall -o main main.o lexicalAnalyzer.o helperFunctions.o symbolTable.o token.o parser.o inFile.o prodRetType.o
 
 main.o: main.cpp lexicalAnalyzer.hpp
 	g++ -std=c++14 -Wall -o main.o -c main.cpp
@@ -21,6 +21,9 @@ inFile.o: inFile.cpp inFile.hpp
 
 helperFunctions.o: helperFunctions.cpp helperFunctions.hpp
 	g++ -std=c++14 -o helperFunctions.o -c helperFunctions.cpp
+
+prodRetType.o: prodRetType.cpp prodRetType.hpp
+	g++ -std=c++14 -o prodRetType.o -c prodRetType.cpp
 
 .PHONY: clean
 

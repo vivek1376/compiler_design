@@ -22,3 +22,6 @@ void Token::printToken() {
     std::cout << "" << this->tokenStr << std::endl;
 }
 
+tokenType Token::getTokenType() {
+    return this->ttype;
+}

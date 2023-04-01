@@ -111,6 +111,7 @@ class Token {
 
         void setTokenType(tokenType ttype);
         void printToken();
+        tokenType getTokenType();
 };
 
 
