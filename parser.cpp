@@ -1,5 +1,9 @@
 #include "parser.hpp"
 
+
+Parser* Parser::instance_ = nullptr;
+
+
 bool Parser::scanAssume(tokenType ttype) {
     /* auto tok = lexer->scan(); */
 
@@ -17,7 +21,23 @@ bool Parser::scanAssume(tokenType ttype) {
     }
 }
 
+LexicalAnalyzer* Parser::getLexer() {
+    return lexer;
+}
 
 ProdRetType* Parser::parseNT_bound() {
     /* scanAssume( */
+    return nullptr;
+}
+
+void Parser::setLexer(LexicalAnalyzer* lexer) {
+    this->lexer = lexer;
+}
+
+Parser* Parser::getInstance() {
+    if (!instance_) {
+        instance_ = new Parser();
+    }
+
+    return instance_;
 }

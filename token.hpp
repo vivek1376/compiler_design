@@ -50,6 +50,7 @@ class Token {
         /* }; */
 
         // TODO should this be outside this class?
+        // this is just to print out the token string
         std::unordered_map<tokenType, std::string> map_ttypeStr {
             {tokenType::PROGRAM_RW, "PROGRAM_RW"},
                 {tokenType::IS_RW, "IS_RW"},

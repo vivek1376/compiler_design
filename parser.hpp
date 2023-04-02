@@ -7,14 +7,22 @@
 
 #define PARSER  Parser::getInstance()
 
+
+
 class Parser {
     public:
-        bool scanAssume(tokenType ttype);
         static Parser* getInstance();
+
+        bool scanAssume(tokenType ttype);
         ProdRetType* parseNT_program();
         ProdRetType* parseNT_bound();
+
         // TODO constructor: set lookahead token ?
+        void setLexer(LexicalAnalyzer*);
+        LexicalAnalyzer* getLexer();
+
     private:
+        // TODO make the copy constructor and assignment operators private ?
         static Parser* instance_;
         Parser() = default;
         LexicalAnalyzer *lexer;

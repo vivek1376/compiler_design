@@ -1,12 +1,11 @@
 #include "lexicalAnalyzer.hpp"
+#include "parser.hpp"
 /* #include "symbolTable.h" */
-
 
 
 int main() {
 
     std::string filename = "../project_description/testPgms/correct/recursiveFib.src";
-    /* std::string filename = "ghfghhfgfgh"; */
 
     /* LexicalAnalyzer* lexer = LexicalAnalyzer::getInstance(); */
 
@@ -17,18 +16,18 @@ int main() {
     LEXER->initSymbolTable();
     /* LEXER->getSymbolTable().printTable(); */
 
-    std::cout << "done printing init symbols..\n\n";
-
+    PARSER->setLexer(LEXER);
+    PARSER->getLexer()->runLexer();
 /*     auto tok = LEXER->getSymbolTable().lookupTokenString("program"); */
 /*     tok->printToken(); */
 
     /* tok = LEXER->getSymbolTable().lookupTokenString("program"); */
     /* tok->printToken(); */
 
-    std::cout << "starting lexer...\n";
-    LEXER->runLexer();
+/*     std::cout << "starting lexer...\n"; */
+/*     LEXER->runLexer(); */
 
-    std::cout << "done lexer...\n";
+/*     std::cout << "done lexer...\n"; */
 
     /* LEXER->getSymbolTable().lookupTokenString("program")->printToken(); */
 
