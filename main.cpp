@@ -17,7 +17,7 @@ int main() {
     /* LEXER->getSymbolTable().printTable(); */
 
     PARSER->setLexer(LEXER);
-    PARSER->getLexer()->runLexer();
+    /* PARSER->getLexer()->runLexer(); */
 /*     auto tok = LEXER->getSymbolTable().lookupTokenString("program"); */
 /*     tok->printToken(); */
 
