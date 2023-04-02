@@ -20,8 +20,8 @@ enum tokenType {
     NOT_RW = 1016, TRUE_RW = 1017, FALSE_RW = 1018,  // rw over
     COLON = ':', SEMICOLON = ';', L_PAREN = '(', R_PAREN = ')', COMMA = ',',
     L_BRACKET = '[', R_BRACKET = ']', UNDERSCORE = '_',
-    ASSIGN_OP = 1019, 
-    AMPERSAND = '&', PLUS = '+', MINUS = '-', LESS_THAN = '<', 
+    ASSIGN_OP = 1019,  // NOTE assign is not equal operator
+    AMPERSAND = '&', PLUS = '+', MINUS = '-', LESS_THAN = '<', PIPE = '|',
     GREATER_EQUAL = 1020, LESS_EQUAL = 1021,
     GREATER_THAN = 1022, EQUALS = 1023, NOT_EQUAL = 1024, 
     MULTIPLY = '*', DIVIDE = '/',
@@ -49,6 +49,7 @@ class Token {
         /*     "STRING", "INVALID" */
         /* }; */
 
+        // TODO should this be outside this class?
         std::unordered_map<tokenType, std::string> map_ttypeStr {
             {tokenType::PROGRAM_RW, "PROGRAM_RW"},
                 {tokenType::IS_RW, "IS_RW"},
