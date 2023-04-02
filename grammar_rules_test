@@ -37,7 +37,7 @@ procedure_call -> identifier ( [argument_list] )
 
 assignment_statement -> destination := expression
 
-destination -> identifier [ [ expression> ] ]
+destination -> identifier [ [ expression ] ]
 
 if_statement -> if ( expression ) then ( statement ; )* [ else ( statement ; )* ] end if
 

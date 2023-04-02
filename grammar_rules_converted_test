@@ -21,7 +21,7 @@ procedure_declaration -> procedure_header procedure_body
                        | return_statement
        procedure_call -> identifier ( [argument_list] )
  assignment_statement -> destination := expression
-          destination -> identifier [ [ expression> ] ]
+          destination -> identifier [ [ expression ] ]
          if_statement -> if ( expression ) then ( statement ; )* [ else ( statement ; )* ] end if
        loop_statement -> for ( assignment_statement ; expression ) ( statement ; )* end for
      return_statement -> return expression
