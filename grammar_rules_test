@@ -33,7 +33,7 @@ statement -> assignment_statement
 | return_statement
 
 
-procedure_call -> identifier ( [argument_list] )
+
 
 assignment_statement -> destination := expression
 
@@ -74,6 +74,8 @@ factor -> ( expression )
 | false
 
 name -> identifier [ [ expression ] ]
+
+procedure_call -> identifier ( [argument_list] )
 
 argument_list -> expression , argument_list
 | expression

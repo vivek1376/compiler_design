@@ -19,7 +19,6 @@ procedure_declaration -> procedure_header procedure_body
                        | if_statement
                        | loop_statement
                        | return_statement
-       procedure_call -> identifier ( [argument_list] )
  assignment_statement -> destination := expression
           destination -> identifier [ [ expression ] ]
          if_statement -> if ( expression ) then ( statement ; )* [ else ( statement ; )* ] end if
@@ -30,13 +29,14 @@ procedure_declaration -> procedure_header procedure_body
              relation -> term relation'
                  term -> factor term'
                factor -> ( expression )
-                       | identifier ( [argument_list] )
+                       | procedure_call
                        | [ - ] name
                        | [ - ] number
                        | string
                        | true
                        | false
                  name -> identifier [ [ expression ] ]
+       procedure_call -> identifier ( [argument_list] )
         argument_list -> [ not ] arithOp expression' , argument_list
                        | [ not ] arithOp expression'
            identifier -> [a-zA-Z][a-zA-Z0-9_]*
