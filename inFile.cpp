@@ -34,4 +34,15 @@ bool inFile::isgood() {
     /* return srcFile.good() && !this->isEOF(); */
 }
 
+int inFile::getPos() {
+    return srcFile.tellg();
+}
 
+void inFile::clear() {
+    srcFile.clear();
+}
+
+void inFile::setPos(int pos) {
+    clear();
+    srcFile.seekg(pos);
+}

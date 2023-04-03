@@ -8,74 +8,7 @@
 #define PARSER  Parser::getInstance()
 
 
-
-class Parser {
-    public:
-        static Parser* getInstance();
-
-        bool scanAssume(tokenType ttype);
-        ProdRetType* parseNT_program();
-        ProdRetType* parseNT_bound();
-
-        // TODO constructor: set lookahead token ?
-        void setLexer(LexicalAnalyzer*);
-        LexicalAnalyzer* getLexer();
-
-
-        // parser fns
-        void parse_program();
-        void parse_program_header();
-        void parse_program_body();
-        void parse_program_identifier();
-        void parse_declaration();
-        void parse_statement();
-        void parse_procedure_declaration();
-        void parse_variable_declaration();
-        void parse_procedure_header();
-        void parse_procedure_body();
-        void parse_identifier();
-        void parse_type_mark();
-        void parse_parameter_list();
-        void parse_parameter();
-        void parse_bound();
-        void parse_number();
-        void parse_assignment_statement();
-        void parse_if_statement();
-        void parse_loop_statement();
-        void parse_return_statement();
-        void parse_procedure_call();
-        void parse_argument_list();
-        void parse_destination();
-        void parse_expression();
-        void parse_arithOp();
-        void parse_expression_();
-        void parse_relation();
-        void parse_arithOp_();
-        void parse_term();
-        void parse_factor();
-        void parse_relation_();
-        void parse_term_();
-        void parse_name();
-        void parse_string();
-
-    private:
-        // TODO make the copy constructor and assignment operators private ?
-        static Parser* instance_;
-        Parser() = default;
-        LexicalAnalyzer *lexer;
-        Token* lookahead;  // how to use ?
-};
-
-
-class nt_retType {
-    /* public: */
-    /*     bool getreturnCode(); */
-
-    public:
-        bool returnCode;
-
-};
-
+class nt_retType_program;
 class nt_retType_program_header;
 class nt_retType_program_body;
 /* class nt_retType_program_identifier; */
@@ -112,6 +45,81 @@ class nt_retType_name;
 class nt_retType_string;
 
 
+class Parser {
+    public:
+        static Parser* getInstance();
+
+        /* bool scanAssume(tokenType ttype); */
+        /* ProdRetType* parseNT_program(); */
+        /* ProdRetType* parseNT_bound(); */
+
+        // TODO constructor: set lookahead token ?
+        void initLexer(LexicalAnalyzer*);
+        LexicalAnalyzer* getLexer();
+
+
+        /* Token* getNextToken(); */
+        Token* match(tokenType);
+
+        // parser fns
+
+        nt_retType_program* parse_program();
+        nt_retType_program_header* parse_program_header();
+        nt_retType_program_body* parse_program_body();
+        /* nt_retType_program_identifier* parse_program_identifier(); */
+        nt_retType_declaration* parse_declaration();
+        nt_retType_statement* parse_statement();
+        nt_retType_procedure_declaration* parse_procedure_declaration();
+        nt_retType_variable_declaration* parse_variable_declaration();
+        nt_retType_procedure_header* parse_procedure_header();
+        nt_retType_procedure_body* parse_procedure_body();
+        nt_retType_identifier* parse_identifier();
+        nt_retType_type_mark* parse_type_mark();
+        nt_retType_parameter_list* parse_parameter_list();
+        nt_retType_parameter* parse_parameter();
+        nt_retType_bound* parse_bound();
+        nt_retType_number* parse_number();
+        nt_retType_assignment_statement* parse_assignment_statement();
+        nt_retType_if_statement* parse_if_statement();
+        nt_retType_loop_statement* parse_loop_statement();
+        nt_retType_return_statement* parse_return_statement();
+        nt_retType_procedure_call* parse_procedure_call();
+        nt_retType_argument_list* parse_argument_list();
+        nt_retType_destination* parse_destination();
+        nt_retType_expression* parse_expression();
+        nt_retType_arithOp* parse_arithOp();
+        nt_retType_expression_* parse_expression_();
+        nt_retType_relation* parse_relation();
+        nt_retType_arithOp_* parse_arithOp_();
+        nt_retType_term* parse_term();
+        nt_retType_factor* parse_factor();
+        nt_retType_relation_* parse_relation_();
+        nt_retType_term_* parse_term_();
+        nt_retType_name* parse_name();
+        nt_retType_string* parse_string();
+
+
+    private:
+        // TODO make the copy constructor and assignment operators private ?
+        static Parser* instance_;
+        Parser() = default;
+        LexicalAnalyzer *lexer;
+
+        /* Token* lookahead;  // how to use ? */
+};
+
+
+class nt_retType {
+    /* public: */
+    /*     bool getreturnCode(); */
+
+    public:
+        bool returnCode;
+
+};
+
+
+
 class nt_retType_program : public nt_retType {
     public:
         nt_retType_program_header* ptr_program_header;
@@ -135,7 +143,7 @@ class nt_retType_program_body : public nt_retType {
 
         Token* ptr_tk_begin;
 
-        std::vector<std::pair<nt_retType_declaration*, Token*>> vec_statement_tksemicolon;
+        std::vector<std::pair<nt_retType_statement*, Token*>> vec_statement_tksemicolon;
 
         Token* ptr_tk_end;
         Token* ptr_tk_program;

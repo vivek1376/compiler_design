@@ -24,7 +24,13 @@ class inFile {
             return srcFile.get();
         }
 
+        int getPos();
+
+        void clear();
+
         bool isgood();
+
+        void setPos(int);
 
         void incLineCnt() {
         }

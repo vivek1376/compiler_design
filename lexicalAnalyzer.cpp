@@ -264,6 +264,8 @@ Token* LexicalAnalyzer::scan() {
 
     /* SymbolTable symTab; */
 
+    /* std::cout << "filepos: " << srcFile->getPos() << std::endl; */
+
     while (srcFile->isgood()) {  // TODO or just true
         prerr("sc1");
 
@@ -282,6 +284,8 @@ Token* LexicalAnalyzer::scan() {
     // TODO check isgood() ?
     return buildToken();
 }
+
+
 
 
 SymbolTable& LexicalAnalyzer::getSymbolTable() {
@@ -309,6 +313,7 @@ Token* LexicalAnalyzer::buildToken() {
         case ';' : case '(' : case ')' : case ',' : case '[' : case ']' : case '_' :
         case '&' : case '+' : case '-' : case '*' : case '/' : case '.':
             /* std::cout << "1st case\n"; */
+            // see https://stackoverflow.com/a/18222927/9894266
             return new Token(static_cast<tokenType>(ch), std::string{ch});
             /* ch = srcFile.getChar(); */
             /* if (ch */ 
@@ -485,4 +490,24 @@ bool LexicalAnalyzer::isComment() {
 
 void LexicalAnalyzer::setinFile(inFile* infile) {
     this->srcFile = infile;
+}
+
+
+void LexicalAnalyzer::setinFilepos(int pos) {
+    srcFile->setPos(pos);
+}
+
+int LexicalAnalyzer::getPos() {
+    return srcFile->getPos();
+}
+
+Token* LexicalAnalyzer::getlookahead() {
+    int pos = getPos();
+
+    Token *tk = scan();
+
+    setinFilepos(pos);
+
+    return tk;
+
 }

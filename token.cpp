@@ -25,3 +25,15 @@ void Token::printToken() {
 tokenType Token::getTokenType() {
     return this->ttype;
 }
+
+std::string Token::getTokenStr() {
+    return this->tokenStr;
+}
+
+std::string Token::getTokenTypeStr() {
+    if (map_ttypeStr.find(ttype) != map_ttypeStr.end()) {
+        return map_ttypeStr[ttype];
+    }
+
+    return "typeNotFound!";
+}

@@ -42,6 +42,9 @@ class LexicalAnalyzer {
         LexicalAnalyzer& operator=(LexicalAnalyzer const&) = delete;
 
         void setinFile(inFile* infile);
+        Token* getlookahead();
+        int getPos();
+        void setinFilepos(int pos);
     private:
         static LexicalAnalyzer* instance_;
         inFile* srcFile;
