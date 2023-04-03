@@ -43,7 +43,7 @@ Token* Parser::match(tokenType tt) {
     // match token and consume (scan() will advance file pointer)
     Token *nextTok = lexer->scan();
 
-    std::cerr << "match() actual str: " << nextTok->getTokenStr() + ", type: " 
+    std::cout << "match() actual str: " << nextTok->getTokenStr() + ", " 
         + nextTok->getTokenTypeStr() + "\n";
     /* if (nextTok->getTokenType() == tk->getTokenType() && */
     /*         nextTok->getTokenStr() == tk->getTokenStr()) */
@@ -137,6 +137,33 @@ nt_retType_program_body* Parser::parse_program_body() {
 
 nt_retType_declaration* Parser::parse_declaration() {
 
+    nt_retType_declaration* ptr_ret = new nt_retType_declaration();
+
+    Token *lookahead = lexer->getlookahead();
+
+    ptr_ret->ptr_tk_global = nullptr;
+    if (lookahead->getTokenType() == tokenType::GLOBAL_RW) {
+        ptr_ret->ptr_tk_global = match(tokenType::GLOBAL_RW);
+    }
+
+
+    ptr_ret->ptr_procedure_declaration = nullptr;  // TODO add this in class constructor
+    ptr_ret->ptr_variable_declaration = nullptr;
+
+    lookahead = lexer->getlookahead();
+
+    if (lookahead->getTokenType() == tokenType::PROCEDURE_RW) {
+        ptr_ret->ptr_procedure_declaration = parse_procedure_declaration();
+        ptr_ret->whichRule = 0;
+    } else if (lookahead->getTokenType() == tokenType::VARIABLE_RW) {
+        ptr_ret->ptr_variable_declaration = parse_variable_declaration();
+        ptr_ret->whichRule = 1;
+    } else {
+        throw std::runtime_error("error in parser_declaration(), lookahead_str: " 
+                + lookahead->getTokenStr());
+    }
+
+    return ptr_ret;
 }
 
 
@@ -151,7 +178,27 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
 
 
 nt_retType_variable_declaration* Parser::parse_variable_declaration() {
+    nt_retType_variable_declaration* ptr_ret = new nt_retType_variable_declaration();
 
+    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW);
+    ptr_ret->ptr_identifier = parse_identifier();
+    ptr_ret->ptr_tk_colon = match(tokenType::COLON);
+    ptr_ret->ptr_type_mark = parse_type_mark();
+
+    ptr_ret->ptr_tk_lbkt = nullptr;
+    ptr_ret->ptr_tk_rbkt = nullptr;
+    ptr_ret->ptr_bound = nullptr;
+
+    Token* lookahead = lexer->getlookahead();
+
+    // TODO delete whichRUle from this class
+    if (lookahead->getTokenType() == tokenType::L_BRACKET) {
+        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET);
+        ptr_ret->ptr_bound = parse_bound();
+        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET);
+    }
+
+    return ptr_ret;
 }
 
 
@@ -168,18 +215,41 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
 nt_retType_identifier* Parser::parse_identifier() {
    nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
-   Token* tk = lexer->scan();
-   if (tk->getTokenType() == tokenType::IDENTIFIER) {
-       ptr_ret->ptr_tk_str = tk;
-       return ptr_ret;
-   }
+   ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER);
 
-   throw std::runtime_error("error in nt_retType_identifier()");
+   return ptr_ret;
+   /* Token* tk = lexer->scan(); */
+   /* if (tk->getTokenType() == tokenType::IDENTIFIER) { */
+   /*     ptr_ret->ptr_tk_str = tk; */
+   /*     return ptr_ret; */
+   /* } */
+
+   /* throw std::runtime_error("error in nt_retType_identifier()"); */
 }
 
 
 nt_retType_type_mark* Parser::parse_type_mark() {
+    nt_retType_type_mark* ptr_ret = new nt_retType_type_mark();
 
+    ptr_ret->ptr_tk_bool = nullptr;
+    ptr_ret->ptr_tk_float = nullptr;
+    ptr_ret->ptr_tk_string = nullptr;
+    ptr_ret->ptr_tk_integer = nullptr;
+
+    Token* lookahead = lexer->getlookahead();
+
+    if (lookahead->getTokenType() == tokenType::INTEGER_RW)
+        ptr_ret->ptr_tk_integer = match(tokenType::INTEGER_RW);
+    else if (lookahead->getTokenType() == tokenType::FLOAT_RW)
+        ptr_ret->ptr_tk_integer = match(tokenType::FLOAT_RW);
+    else if (lookahead->getTokenType() == tokenType::STRING_RW)
+        ptr_ret->ptr_tk_integer = match(tokenType::STRING_RW);
+    else if (lookahead->getTokenType() == tokenType::BOOL_RW)
+        ptr_ret->ptr_tk_integer = match(tokenType::BOOL_RW);
+
+    // TODO throw
+
+    return ptr_ret;
 }
 
 
