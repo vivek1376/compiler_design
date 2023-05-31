@@ -158,10 +158,10 @@ void LexicalAnalyzer::processComments() {
     // for line comment read until newline
     // for block comment keep a count to match nested comments
 
-    // discard first char, since we know it is / for both block and line comment
+    // eat up first char; we know it is / for both block and line comment
     srcFile->getChar();
 
-    // we need to read 2nd char to determine if its line or block comment
+    // we need to read 2nd char to determine if it is line or block comment
 
     // first process line comments
     if (srcFile->getChar() == '/') {
@@ -506,6 +506,7 @@ Token* LexicalAnalyzer::getlookahead() {
 
     Token *tk = scan();
 
+    // resetting ?
     setinFilepos(pos);
 
     return tk;
