@@ -43,7 +43,7 @@ Token* Parser::match(tokenType tt) {
     // match token and consume (scan() will advance file pointer)
     Token *nextTok = lexer->scan();
 
-    std::cout << "match() actual str: " << nextTok->getTokenStr() + ", "
+    std::cout << "match() actual str:\t\t" << nextTok->getTokenStr() + "\t\t"
         + nextTok->getTokenTypeStr() + "\n";
     /* if (nextTok->getTokenType() == tk->getTokenType() && */
     /*         nextTok->getTokenStr() == tk->getTokenStr()) */
@@ -359,11 +359,42 @@ nt_retType_if_statement* Parser::parse_if_statement() {
 
 nt_retType_loop_statement* Parser::parse_loop_statement() {
 
+    auto ptr_ret = new nt_retType_loop_statement();
+
+    ptr_ret->ptr_tk_for = match(tokenType::FOR_RW);
+    ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN);
+    ptr_ret->ptr_assignment_statement = parse_assignment_statement();
+    ptr_ret->ptr_tk_semicolon = match(tokenType::SEMICOLON);
+    ptr_ret->ptr_expression = parse_expression();
+    ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN);
+
+    auto lookahead = lexer->getlookahead();
+
+    while (lookahead->getTokenType() != tokenType::END_RW) {
+        auto p_first_st = parse_statement();
+        auto p_second_semicolon = match(tokenType::SEMICOLON);
+
+        ptr_ret->vec_statement_semicolon.push_back(std::make_pair(p_first_st,
+                    p_second_semicolon));
+
+        lookahead = lexer->getlookahead();
+    }
+
+    ptr_ret->ptr_tk_end = match(tokenType::END_RW);
+    ptr_ret->ptr_tk_for = match(tokenType::FOR_RW);
+
+    return ptr_ret;
 }
 
 
 nt_retType_return_statement* Parser::parse_return_statement() {
+    
+    auto ptr_ret = new nt_retType_return_statement();
 
+    ptr_ret->ptr_tk_return = match(tokenType::RETURN_RW);
+    ptr_ret->ptr_expression = parse_expression();
+
+    return ptr_ret;
 }
 
 
