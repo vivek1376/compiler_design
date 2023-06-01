@@ -173,8 +173,11 @@ nt_retType_statement* Parser::parse_statement() {
     Token *lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::IF_RW) {
-    } else if (lookahead->getTokenType() == tokenType::FOR_RW) {
+        ptr_ret->ptr_if_statement = parse_if_statement();
     } else if (lookahead->getTokenType() == tokenType::RETURN_RW) {
+        ptr_ret->ptr_return_statement = parse_return_statement();
+    } else if (lookahead->getTokenType() == tokenType::FOR_RW) {
+        ptr_ret->ptr_loop_statement = parse_loop_statement();
     } else {  // assignment
         ptr_ret->ptr_assignment_statement = parse_assignment_statement();
     }
@@ -305,6 +308,52 @@ nt_retType_assignment_statement* Parser::parse_assignment_statement() {
 
 nt_retType_if_statement* Parser::parse_if_statement() {
 
+    // TODO ignoring few match() call returns
+    nt_retType_if_statement* ptr_ret = new nt_retType_if_statement();
+
+    ptr_ret->ptr_tk_if = match(tokenType::IF_RW);
+    match(tokenType::L_PAREN);  // NOTE ignoring return pointer
+    ptr_ret->ptr_expression = parse_expression();
+    match(tokenType::R_PAREN);
+
+    ptr_ret->ptr_tk_then = match(tokenType::THEN_RW);
+
+    Token* lookahead = lexer->getlookahead();
+
+    while (lookahead->getTokenType() != tokenType::ELSE_RW &&
+            lookahead->getTokenType() != tokenType::END_RW) {
+        auto p_first_st = parse_statement();
+        auto p_second_semicolon = match(tokenType::SEMICOLON);
+
+        ptr_ret->vec_statement_semicolon.push_back(std::make_pair(p_first_st,
+                    p_second_semicolon));
+
+        lookahead = lexer->getlookahead();
+    }
+
+    lookahead = lexer->getlookahead();  // TODO redundant due to previous getlookahead() call ?
+    if (lookahead->getTokenType() == tokenType::ELSE_RW) {
+
+        ptr_ret->ptr_tk_else = match(tokenType::ELSE_RW);
+
+        lookahead = lexer->getlookahead();
+
+        while (lookahead->getTokenType() != tokenType::END_RW) {
+
+            auto p_first_st = parse_statement();
+            auto p_second_semicolon = match(tokenType::SEMICOLON);
+
+            ptr_ret->vec_statement_semicolon_2.push_back(std::make_pair(p_first_st,
+                        p_second_semicolon));
+
+            lookahead = lexer->getlookahead();
+        }
+    }
+
+    ptr_ret->ptr_tk_end = match(tokenType::END_RW);
+    ptr_ret->ptr_tk_if_2 = match(tokenType::IF_RW);
+
+    return ptr_ret;
 }
 
 
