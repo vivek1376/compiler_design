@@ -12,6 +12,8 @@ LexicalAnalyzer* LexicalAnalyzer::getInstance() {
     return instance_;
 
 }
+
+
 /* bool inFile::isEOF() { */
 /*     return srcFile.eof(); */
 /* } */

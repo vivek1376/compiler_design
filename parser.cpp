@@ -30,6 +30,11 @@ void Parser::initLexer(LexicalAnalyzer* lexer) {
     this->lexer = lexer;
 }
 
+void Parser::initLogger(Reporting* logger) {
+    this->logger = logger;
+}
+
+
 Parser* Parser::getInstance() {
     if (!instance_) {
         instance_ = new Parser();
@@ -41,21 +46,26 @@ Parser* Parser::getInstance() {
 
 Token* Parser::match(tokenType tt) {
     // match token and consume (scan() will advance file pointer)
-    Token *nextTok = lexer->scan();
+    Token *tok = lexer->scan();
 
-    std::cout << "match() actual str:\t\t" << nextTok->getTokenStr() + "\t\t"
-        + nextTok->getTokenTypeStr() + "\n";
+    std::cout << "match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
+        + tok->getTokenTypeStr() + "\n";
+
     /* if (nextTok->getTokenType() == tk->getTokenType() && */
     /*         nextTok->getTokenStr() == tk->getTokenStr()) */
     /*     return nextTok; */
 
-    if (nextTok->getTokenType() == tt)
-        return nextTok;
+    if (tok->getTokenType() == tt) {
+        return tok;
+    } else {
+        logger->reportError("token not matched!");
+        return nullptr;
+    }
 
     Token tmpTok(tt, "tmptoken");
     throw std::runtime_error("scan_assume_failed expected/actual: " + tmpTok.getTokenTypeStr()
             + "/"
-            + nextTok->getTokenTypeStr());
+            + tok->getTokenTypeStr());
 }
 
 
@@ -366,9 +376,20 @@ nt_retType_bound* Parser::parse_bound() {
 
 nt_retType_number* Parser::parse_number() {
 
+    std::cout << "parsing no." << std::endl;
+    std::cout << std::endl;
+
     nt_retType_number* ptr_ret = new nt_retType_number();
 
-    ptr_ret->ptr_tk_number = match(tokenType::INTEGER);
+    auto lookahead = lexer->getlookahead();
+
+    if (lookahead->getTokenType() == tokenType::INTEGER)
+        ptr_ret->ptr_tk_number = match(tokenType::INTEGER);
+    else if (lookahead->getTokenType() == tokenType::FLOAT)
+        ptr_ret->ptr_tk_number = match(tokenType::FLOAT);
+    else
+        throw std::runtime_error("can't parse number, actual string: " +
+                lookahead->getTokenStr());
 
     return ptr_ret;
 }
@@ -376,7 +397,10 @@ nt_retType_number* Parser::parse_number() {
 
 nt_retType_assignment_statement* Parser::parse_assignment_statement() {
 
-    nt_retType_assignment_statement* ptr_ret = new nt_retType_assignment_statement();
+    std::cout << "parse_assignment_statement():\n";
+    std::cout << std::endl;
+
+    auto ptr_ret = new nt_retType_assignment_statement();
 
     ptr_ret->ptr_destination = parse_destination();
     ptr_ret->ptr_tk_assign = match(tokenType::ASSIGN_OP);
@@ -480,12 +504,23 @@ nt_retType_return_statement* Parser::parse_return_statement() {
 
 nt_retType_procedure_call* Parser::parse_procedure_call() {
     // NOTE handled in factor parse fn
-
 }
 
 
 nt_retType_argument_list* Parser::parse_argument_list() {
 
+    auto ptr_ret = new nt_retType_argument_list();
+
+    ptr_ret->ptr_expression = parse_expression();
+
+    auto lookahead = lexer->getlookahead();
+
+    if (lookahead->getTokenType() == tokenType::COMMA) {
+        ptr_ret->ptr_tk_comma = match(tokenType::COMMA);
+        ptr_ret->ptr_argument_list = parse_argument_list();
+    }
+
+    return ptr_ret;
 }
 
 
@@ -605,10 +640,11 @@ nt_retType_term* Parser::parse_term() {
 
 
 nt_retType_factor* Parser::parse_factor() {
-
     nt_retType_factor* ptr_ret = new nt_retType_factor();
 
     Token* lookahead = lexer->getlookahead();
+    std::cout << "lookahead is :" << lookahead->getTokenStr() << " type: " <<
+        lookahead->getTokenTypeStr() << std::endl;
 
     if (lookahead->getTokenType() == tokenType::L_PAREN) {
         ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN);
@@ -619,15 +655,15 @@ nt_retType_factor* Parser::parse_factor() {
 
         lookahead = lexer->getlookahead();
 
-
         if (lookahead->getTokenType() == tokenType::IDENTIFIER) {
-            std::cout << "h0\n" << std::endl;
             ptr_ret->ptr_name = parse_name();
-        } else if (lookahead->getTokenType() == tokenType::INTEGER) {
+        } else if (lookahead->getTokenType() == tokenType::INTEGER ||
+                lookahead->getTokenType() == tokenType::FLOAT) {
             ptr_ret->ptr_number = parse_number();
         }
 
-    } else if (lookahead->getTokenType() == tokenType::INTEGER) {
+    } else if (lookahead->getTokenType() == tokenType::INTEGER ||
+            lookahead->getTokenType() == tokenType::FLOAT) {
         ptr_ret->ptr_number = parse_number();
     } else if (lookahead->getTokenType() == tokenType::STRING) {
         ptr_ret->ptr_string = parse_string();

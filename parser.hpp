@@ -55,6 +55,7 @@ class Parser {
 
         // TODO constructor: set lookahead token ?
         void initLexer(LexicalAnalyzer*);
+        void initLogger(Reporting*);
         LexicalAnalyzer* getLexer();
 
 
@@ -104,6 +105,7 @@ class Parser {
         static Parser* instance_;
         Parser() = default;
         LexicalAnalyzer *lexer;
+        Reporting* logger;
 
         /* Token* lookahead;  // how to use ? */
 };
@@ -322,12 +324,16 @@ class nt_retType_argument_list : public nt_retType {
     public:
         int whichRule;
 
-        Token* ptr_tk_not;
-
-        nt_retType_arithOp* ptr_arithOp;
-        nt_retType_expression_* ptr_expression_;
+        nt_retType_expression* ptr_expression;
         Token* ptr_tk_comma;
         nt_retType_argument_list* ptr_argument_list;
+
+        // Token* ptr_tk_not;
+
+        /* nt_retType_arithOp* ptr_arithOp; */
+        /* nt_retType_expression_* ptr_expression_; */
+        /* Token* ptr_tk_comma; */
+        /* nt_retType_argument_list* ptr_argument_list; */
 };
 
 

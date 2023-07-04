@@ -18,6 +18,7 @@ int main() {
     /* LEXER->getSymbolTable().printTable(); */
     /* throw std::runtime_error("testing exception!"); */
     PARSER->initLexer(LEXER);
+    PARSER->initLogger(LOGGER);
 
     PARSER->parse_program();
 

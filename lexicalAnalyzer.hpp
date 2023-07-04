@@ -14,6 +14,7 @@
 #include "token.hpp"
 #include "symbolTable.hpp"
 #include "helperFunctions.hpp"
+#include "reporting.hpp"
 
 #define LEXER   LexicalAnalyzer::getInstance()
 
