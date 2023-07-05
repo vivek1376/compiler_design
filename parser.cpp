@@ -59,17 +59,25 @@ Token* Parser::match(tokenType tt) {
         return tok;
     } else {
         logger->reportError("token not matched!");
-        return nullptr;
+
+        // tokenType isn't as expected
+        tok->setTokenType(tokenType::INVALID);
+        return tok;
     }
 
-    Token tmpTok(tt, "tmptoken");
-    throw std::runtime_error("scan_assume_failed expected/actual: " + tmpTok.getTokenTypeStr()
-            + "/"
-            + tok->getTokenTypeStr());
+    /* Token tmpTok(tt, "tmptoken"); */
+    /* throw std::runtime_error("scan_assume_failed expected/actual: " + tmpTok.getTokenTypeStr() */
+    /*         + "/" */
+    /*         + tok->getTokenTypeStr()); */
 }
 
 
 // nt_* parsers
+
+nt_retType::nt_retType() {
+    // set true by default; upon parse/type check error, set returnCode false explicitly
+    returnCode = true;
+}
 
 nt_retType_program* Parser::parse_program() {
 
@@ -213,6 +221,18 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW);
     ptr_ret->ptr_identifier = parse_identifier();
+
+    if (ptr_ret->ptr_identifier->returnCode == false) {
+        logger->reportError("Missing name");
+        ptr_ret->returnCode = false;
+
+        return ptr_ret;
+    }
+
+    // verify variable is not being re-declared
+
+
+
     ptr_ret->ptr_tk_colon = match(tokenType::COLON);
     ptr_ret->ptr_type_mark = parse_type_mark();
 

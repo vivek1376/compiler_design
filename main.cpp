@@ -32,10 +32,8 @@ int main() {
     /* lktok = PARSER->getLexer()->getlookahead(); */
     /* lktok->printToken(); */
 
-
     /* lktok = PARSER->getLexer()->getlookahead(); */
     /* lktok->printToken(); */
-
 
 /*     std::cout << "resetting...\n\n\n"; */
 

@@ -117,6 +117,7 @@ class nt_retType {
 
     public:
         bool returnCode;
+        nt_retType();
 
 };
 

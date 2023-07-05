@@ -1,36 +1,63 @@
 #include "symbolTable.hpp"
 
 
-Token* SymbolTable::lookupTokenString(std::string tokenStr) {
-    /* std::cout << "inside lookup()...\n"; */
-    if (map_symTab.find(tokenStr) != map_symTab.end()) {
-        /* std::cout << "found existing token..\n"; */
-        return map_symTab.find(tokenStr)->second;
+Tokeninfo::Tokeninfo(Token *tok, SymInfo *syminfo)
+    : tok{tok}
+    , syminfo{syminfo} {}
+
+
+std::pair<int, Tokeninfo*> SymbolTable::lookupTokenString(std::string tokenStr) {
+    // lookup in current scope and above, insert if not present in current scope ?
+    // -1 means new symbol in entire program so far
+    // NOTE symbol table is only for identifiers
+
+    int numScopes = vec_symtab.size() - 1;
+    int scopeDepth = 0;
+
+    /* if (vec_symtab.back().find(tokenStr) != vec_symtab.back().end()) { */
+    /* } */
+    for (auto it = vec_symtab.rbegin(); it != vec_symtab.rend(); ++it) {
+        if (it->find(tokenStr) != it->end()) {
+            return std::make_pair(scopeDepth, it->find(tokenStr)->second);
+        }
+
+        scopeDepth++;
     }
+
+    /* /1* std::cout << "inside lookup()...\n"; *1/ */
+    /* if (map_symTab.find(tokenStr) != map_symTab.end()) { */
+    /*     /1* std::cout << "found existing token..\n"; *1/ */
+    /*     return map_symTab.find(tokenStr)->second; */
+    /* } */
 
     // TODO explain
     /* return map_symTab.insert(std::make_pair(tokenStr, */ 
     /*             new Token(tokenType::IDENTIFIER, tokenStr))).first->second; */
 
     /* std::cout << "inserting new token...\n"; */
-    map_symTab.insert(std::make_pair(tokenStr, 
-                new Token(tokenType::IDENTIFIER, tokenStr)));
+    /* map_symTab.insert(std::make_pair(tokenStr, */ 
+    /*             new Token(tokenType::IDENTIFIER, tokenStr))); */
 
-    return map_symTab.find(tokenStr)->second;
+    vec_symtab.back().insert(std::make_pair(tokenStr, new Tokeninfo(
+                    new Token(tokenType::IDENTIFIER, tokenStr),
+                    new SymInfo())));
+
+    return std::make_pair(-1, vec_symtab.back().find(tokenStr)->second);
 }
 
-void SymbolTable::printTable() {
-    for (auto p: map_symTab) {
-        p.second->printToken();
-    }
-}
 
-void SymbolTable::printAllKeys() {
-    std::cout << "KEYS: ";
-    for (auto p: map_symTab) {
-        std::cout << p.first << " ";
-    }
+/* void SymbolTable::printTable() { */
+/*     for (auto p: map_symTab) { */
+/*         p.second->printToken(); */
+/*     } */
+/* } */
 
-    std::cout << std::endl;
-}
+/* void SymbolTable::printAllKeys() { */
+/*     std::cout << "KEYS: "; */
+/*     for (auto p: map_symTab) { */
+/*         std::cout << p.first << " "; */
+/*     } */
+
+/*     std::cout << std::endl; */
+/* } */
 
