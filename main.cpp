@@ -13,10 +13,15 @@ int main() {
     /* lexer->runLexer(filename); */
 
     /* runLexer(filename); */
+    std::cout << "h1" << std::endl;
     LEXER->setinFile(new inFile(filename));
+ 
+    std::cout << "h2" << std::endl;
     LEXER->initSymbolTable();
     /* LEXER->getSymbolTable().printTable(); */
     /* throw std::runtime_error("testing exception!"); */
+
+    std::cout << "h3" << std::endl;
     PARSER->initLexer(LEXER);
     PARSER->initLogger(LOGGER);
 

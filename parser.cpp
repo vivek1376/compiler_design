@@ -82,6 +82,7 @@ nt_retType::nt_retType() {
 nt_retType_program* Parser::parse_program() {
 
     /* currTok = lexer->scan(); */
+    std::cout << "parse_program()" << std::endl;
 
     nt_retType_program* ptr_ret = new nt_retType_program();
 
@@ -396,8 +397,8 @@ nt_retType_bound* Parser::parse_bound() {
 
 nt_retType_number* Parser::parse_number() {
 
-    std::cout << "parsing no." << std::endl;
-    std::cout << std::endl;
+    std::cerr << "parsing no." << std::endl;
+    std::cerr << std::endl;
 
     nt_retType_number* ptr_ret = new nt_retType_number();
 

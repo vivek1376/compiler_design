@@ -6,21 +6,36 @@
 /*     , syminfo{syminfo} {} */
 
 
+SymInfo::SymInfo(Token* token) : tok(token) {}
+
+
 Token* SymInfo::getToken() {
     return tok;
 }
+
+
+void SymbolTable::addTable() {
+    // TODO change ?
+    vec_symtab.push_back(std::unordered_map<std::string, SymInfo*>());
+}
+
 
 Token* SymbolTable::lookupTokenString(std::string tokenStr, std::pair<bool, SymInfo*>* symInfo) {
     // lookup in current scope, insert if not present in current scope
     // -1 means new symbol in entire program so far
     // NOTE symbol table is only for identifiers
 
-    // int numScopes = vec_symtab.size() - 1;
+    int numScopes = vec_symtab.size();
     // int scopeDepth = 0;
+    std::cerr << "numscopes: " << numScopes << std::endl;
 
     if (vec_symtab.back().find(tokenStr) != vec_symtab.back().end()) {
-        symInfo->first = true;
-        symInfo->second = vec_symtab.back().find(tokenStr)->second;
+        std::cerr << "inside\n" << std::endl;
+
+        if (symInfo) {
+            symInfo->first = true;
+            symInfo->second = vec_symtab.back().find(tokenStr)->second;
+        }
 
         return vec_symtab.back().find(tokenStr)->second->getToken();
     }
@@ -47,11 +62,15 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, std::pair<bool, SymI
     /* map_symTab.insert(std::make_pair(tokenStr, */ 
     /*             new Token(tokenType::IDENTIFIER, tokenStr))); */
 
-    vec_symtab.back().insert(std::make_pair(tokenStr, new SymInfo()));  // TODO change this
+    std::cout << "inserting...\n" << std::endl;
+    vec_symtab.back().insert(std::make_pair(tokenStr, new SymInfo(
+                    new Token(tokenType::IDENTIFIER, tokenStr))));
+                                                                        // u
                 /* new Tokeninfo( */
                 /*     new Token(tokenType::IDENTIFIER, tokenStr), */
                 /*     new SymInfo()))); */
 
+    std::cout << "inserted...\n" << std::endl;
     return vec_symtab.back().find(tokenStr)->second->getToken();
 }
 

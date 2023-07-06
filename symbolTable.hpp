@@ -18,6 +18,7 @@ class SymInfo {
 
     public:
         /* Tokeninfo(Token* tok, SymInfo *syminfo); */
+        SymInfo(Token*);
         Token* getToken();
 };
 
@@ -48,8 +49,9 @@ class SymbolTable {
         Token* lookupTokenString(std::string, std::pair<bool, SymInfo*>*);
 
         void printTable();
-
+        void addTable();
         void printAllKeys();
+        /* SymbolTable(); */
 
 };
 
