@@ -44,9 +44,9 @@ Parser* Parser::getInstance() {
 }
 
 
-Token* Parser::match(tokenType tt) {
+Token* Parser::match(tokenType tt, std::pair<bool, SymInfo*>* syminfo) {
     // match token and consume (scan() will advance file pointer)
-    Token *tok = lexer->scan();
+    Token *tok = lexer->scan(syminfo);
 
     std::cout << "match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
         + tok->getTokenTypeStr() + "\n";
@@ -88,7 +88,7 @@ nt_retType_program* Parser::parse_program() {
     ptr_ret->ptr_program_header = parse_program_header();
     ptr_ret->ptr_program_body = parse_program_body();
 
-    ptr_ret->ptr_tk_dot = match(tokenType::DOT);
+    ptr_ret->ptr_tk_dot = match(tokenType::DOT, nullptr);
 
     return ptr_ret;
 }
@@ -100,10 +100,10 @@ nt_retType_program_header* Parser::parse_program_header() {
     // Token* tk = new Token(tokenType::PROGRAM_RW, "program");
     // match(tk);
 
-    ptr_ret->ptr_tk_program = match(tokenType::PROGRAM_RW);
+    ptr_ret->ptr_tk_program = match(tokenType::PROGRAM_RW, nullptr);
     ptr_ret->ptr_identifier = parse_identifier();
 
-    ptr_ret->ptr_tk_is = match(tokenType::IS_RW);
+    ptr_ret->ptr_tk_is = match(tokenType::IS_RW, nullptr);
 
     return ptr_ret;
 }
@@ -121,7 +121,7 @@ nt_retType_program_body* Parser::parse_program_body() {
     while (lookahead->getTokenType() != tokenType::BEGIN_RW
             && lookahead->getTokenStr() != "begin") {  // TODO second condition redundant ?
         ptr_declaration = parse_declaration();
-        tk_semicolon = match(tokenType::SEMICOLON);
+        tk_semicolon = match(tokenType::SEMICOLON, nullptr);
 
         ptr_ret->vec_declaration_tksemicolon.push_back(std::make_pair(ptr_declaration,
                     tk_semicolon));
@@ -129,7 +129,7 @@ nt_retType_program_body* Parser::parse_program_body() {
         lookahead = lexer->getlookahead();
     }
 
-    ptr_ret->ptr_tk_begin = match(tokenType::BEGIN_RW);
+    ptr_ret->ptr_tk_begin = match(tokenType::BEGIN_RW, nullptr);
 
     lookahead = lexer->getlookahead();
 
@@ -138,7 +138,7 @@ nt_retType_program_body* Parser::parse_program_body() {
             && lookahead->getTokenStr() != "end") {
 
         ptr_statement = parse_statement();
-        tk_semicolon = match(tokenType::SEMICOLON);
+        tk_semicolon = match(tokenType::SEMICOLON, nullptr);
 
         ptr_ret->vec_statement_tksemicolon.push_back(std::make_pair(ptr_statement,
                     tk_semicolon));
@@ -146,8 +146,8 @@ nt_retType_program_body* Parser::parse_program_body() {
         lookahead = lexer->getlookahead();
     }
 
-    ptr_ret->ptr_tk_end = match(tokenType::END_RW);
-    ptr_ret->ptr_tk_program = match(tokenType::PROGRAM_RW);
+    ptr_ret->ptr_tk_end = match(tokenType::END_RW, nullptr);
+    ptr_ret->ptr_tk_program = match(tokenType::PROGRAM_RW, nullptr);
 
     return ptr_ret;
 }
@@ -161,7 +161,7 @@ nt_retType_declaration* Parser::parse_declaration() {
 
     ptr_ret->ptr_tk_global = nullptr;
     if (lookahead->getTokenType() == tokenType::GLOBAL_RW) {
-        ptr_ret->ptr_tk_global = match(tokenType::GLOBAL_RW);
+        ptr_ret->ptr_tk_global = match(tokenType::GLOBAL_RW, nullptr);
     }
 
     ptr_ret->ptr_procedure_declaration = nullptr;  // TODO add this in class constructor
@@ -219,7 +219,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     nt_retType_variable_declaration* ptr_ret = new nt_retType_variable_declaration();
 
-    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW);
+    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr);
     ptr_ret->ptr_identifier = parse_identifier();
 
     if (ptr_ret->ptr_identifier->returnCode == false) {
@@ -233,7 +233,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
 
 
-    ptr_ret->ptr_tk_colon = match(tokenType::COLON);
+    ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
 
     ptr_ret->ptr_tk_lbkt = nullptr;
@@ -244,9 +244,9 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     // TODO delete whichRUle from this class
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
-        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET);
+        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_bound = parse_bound();
-        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET);
+        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
     }
 
     return ptr_ret;
@@ -257,12 +257,12 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
 
     auto ptr_ret = new nt_retType_procedure_header();
 
-    ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW);
+    ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW, nullptr);
     ptr_ret->ptr_identifier = parse_identifier();
-    ptr_ret->ptr_tk_colon = match(tokenType::COLON);
+    ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
 
-    ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN);
+    ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr);
 
     auto lookahead = lexer->getlookahead();
 
@@ -270,7 +270,7 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
         ptr_ret->ptr_parameter_list = parse_parameter_list();
     }
 
-    ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN);
+    ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr);
 
     return ptr_ret;
 }
@@ -285,7 +285,7 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
     while (lookahead->getTokenType() != tokenType::BEGIN_RW) {
 
         auto p_first_decl = parse_declaration();
-        auto p_second_semicolon = match(tokenType::SEMICOLON);
+        auto p_second_semicolon = match(tokenType::SEMICOLON, nullptr);
 
         ptr_ret->vec_declaration_tkcolon.push_back(std::make_pair(p_first_decl,
                     p_second_semicolon));
@@ -293,13 +293,13 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
         lookahead = lexer->getlookahead();
     }
 
-    ptr_ret->ptr_tk_begin = match(tokenType::BEGIN_RW);
+    ptr_ret->ptr_tk_begin = match(tokenType::BEGIN_RW, nullptr);
 
     lookahead = lexer->getlookahead();
     while (lookahead->getTokenType() != tokenType::END_RW) {
 
         auto p_first_st = parse_statement();
-        auto p_second_semicolon = match(tokenType::SEMICOLON);
+        auto p_second_semicolon = match(tokenType::SEMICOLON, nullptr);
 
         ptr_ret->vec_statement_tkcolon.push_back(std::make_pair(p_first_st, 
                     p_second_semicolon));
@@ -307,8 +307,8 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
         lookahead = lexer->getlookahead();
     }
 
-    ptr_ret->ptr_tk_end = match(tokenType::END_RW);
-    ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW);
+    ptr_ret->ptr_tk_end = match(tokenType::END_RW, nullptr);
+    ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW, nullptr);
 
     return ptr_ret;
 }
@@ -319,7 +319,7 @@ nt_retType_identifier* Parser::parse_identifier() {
 
     nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
-    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER);
+    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, nullptr);
 
     return ptr_ret;
     /* Token* tk = lexer->scan(); */
@@ -343,13 +343,13 @@ nt_retType_type_mark* Parser::parse_type_mark() {
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::INTEGER_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::INTEGER_RW);
+        ptr_ret->ptr_tk_integer = match(tokenType::INTEGER_RW, nullptr);
     else if (lookahead->getTokenType() == tokenType::FLOAT_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::FLOAT_RW);
+        ptr_ret->ptr_tk_integer = match(tokenType::FLOAT_RW, nullptr);
     else if (lookahead->getTokenType() == tokenType::STRING_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::STRING_RW);
+        ptr_ret->ptr_tk_integer = match(tokenType::STRING_RW, nullptr);
     else if (lookahead->getTokenType() == tokenType::BOOL_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::BOOL_RW);
+        ptr_ret->ptr_tk_integer = match(tokenType::BOOL_RW, nullptr);
 
     // TODO throw
 
@@ -366,7 +366,7 @@ nt_retType_parameter_list* Parser::parse_parameter_list() {
     auto lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::COMMA) {
-        ptr_ret->ptr_tk_comma = match(tokenType::COMMA);
+        ptr_ret->ptr_tk_comma = match(tokenType::COMMA, nullptr);
         ptr_ret->ptr_parameter_list = parse_parameter_list();
     }
 
@@ -404,9 +404,9 @@ nt_retType_number* Parser::parse_number() {
     auto lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::INTEGER)
-        ptr_ret->ptr_tk_number = match(tokenType::INTEGER);
+        ptr_ret->ptr_tk_number = match(tokenType::INTEGER, nullptr);
     else if (lookahead->getTokenType() == tokenType::FLOAT)
-        ptr_ret->ptr_tk_number = match(tokenType::FLOAT);
+        ptr_ret->ptr_tk_number = match(tokenType::FLOAT, nullptr);
     else
         throw std::runtime_error("can't parse number, actual string: " +
                 lookahead->getTokenStr());
@@ -423,7 +423,7 @@ nt_retType_assignment_statement* Parser::parse_assignment_statement() {
     auto ptr_ret = new nt_retType_assignment_statement();
 
     ptr_ret->ptr_destination = parse_destination();
-    ptr_ret->ptr_tk_assign = match(tokenType::ASSIGN_OP);
+    ptr_ret->ptr_tk_assign = match(tokenType::ASSIGN_OP, nullptr);
     ptr_ret->ptr_expression = parse_expression();
 
     return ptr_ret;
@@ -435,19 +435,19 @@ nt_retType_if_statement* Parser::parse_if_statement() {
     // TODO ignoring few match() call returns
     nt_retType_if_statement* ptr_ret = new nt_retType_if_statement();
 
-    ptr_ret->ptr_tk_if = match(tokenType::IF_RW);
-    match(tokenType::L_PAREN);  // NOTE ignoring return pointer
+    ptr_ret->ptr_tk_if = match(tokenType::IF_RW, nullptr);
+    match(tokenType::L_PAREN, nullptr);  // NOTE ignoring return pointer
     ptr_ret->ptr_expression = parse_expression();
-    match(tokenType::R_PAREN);
+    match(tokenType::R_PAREN, nullptr);
 
-    ptr_ret->ptr_tk_then = match(tokenType::THEN_RW);
+    ptr_ret->ptr_tk_then = match(tokenType::THEN_RW, nullptr);
 
     Token* lookahead = lexer->getlookahead();
 
     while (lookahead->getTokenType() != tokenType::ELSE_RW &&
             lookahead->getTokenType() != tokenType::END_RW) {
         auto p_first_st = parse_statement();
-        auto p_second_semicolon = match(tokenType::SEMICOLON);
+        auto p_second_semicolon = match(tokenType::SEMICOLON, nullptr);
 
         ptr_ret->vec_statement_semicolon.push_back(std::make_pair(p_first_st,
                     p_second_semicolon));
@@ -458,14 +458,14 @@ nt_retType_if_statement* Parser::parse_if_statement() {
     lookahead = lexer->getlookahead();  // TODO redundant due to previous getlookahead() call ?
     if (lookahead->getTokenType() == tokenType::ELSE_RW) {
 
-        ptr_ret->ptr_tk_else = match(tokenType::ELSE_RW);
+        ptr_ret->ptr_tk_else = match(tokenType::ELSE_RW, nullptr);
 
         lookahead = lexer->getlookahead();
 
         while (lookahead->getTokenType() != tokenType::END_RW) {
 
             auto p_first_st = parse_statement();
-            auto p_second_semicolon = match(tokenType::SEMICOLON);
+            auto p_second_semicolon = match(tokenType::SEMICOLON, nullptr);
 
             ptr_ret->vec_statement_semicolon_2.push_back(std::make_pair(p_first_st,
                         p_second_semicolon));
@@ -474,8 +474,8 @@ nt_retType_if_statement* Parser::parse_if_statement() {
         }
     }
 
-    ptr_ret->ptr_tk_end = match(tokenType::END_RW);
-    ptr_ret->ptr_tk_if_2 = match(tokenType::IF_RW);
+    ptr_ret->ptr_tk_end = match(tokenType::END_RW, nullptr);
+    ptr_ret->ptr_tk_if_2 = match(tokenType::IF_RW, nullptr);
 
     return ptr_ret;
 }
@@ -485,18 +485,18 @@ nt_retType_loop_statement* Parser::parse_loop_statement() {
 
     auto ptr_ret = new nt_retType_loop_statement();
 
-    ptr_ret->ptr_tk_for = match(tokenType::FOR_RW);
-    ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN);
+    ptr_ret->ptr_tk_for = match(tokenType::FOR_RW, nullptr);
+    ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr);
     ptr_ret->ptr_assignment_statement = parse_assignment_statement();
-    ptr_ret->ptr_tk_semicolon = match(tokenType::SEMICOLON);
+    ptr_ret->ptr_tk_semicolon = match(tokenType::SEMICOLON, nullptr);
     ptr_ret->ptr_expression = parse_expression();
-    ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN);
+    ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr);
 
     auto lookahead = lexer->getlookahead();
 
     while (lookahead->getTokenType() != tokenType::END_RW) {
         auto p_first_st = parse_statement();
-        auto p_second_semicolon = match(tokenType::SEMICOLON);
+        auto p_second_semicolon = match(tokenType::SEMICOLON, nullptr);
 
         ptr_ret->vec_statement_semicolon.push_back(std::make_pair(p_first_st,
                     p_second_semicolon));
@@ -504,8 +504,8 @@ nt_retType_loop_statement* Parser::parse_loop_statement() {
         lookahead = lexer->getlookahead();
     }
 
-    ptr_ret->ptr_tk_end = match(tokenType::END_RW);
-    ptr_ret->ptr_tk_for = match(tokenType::FOR_RW);
+    ptr_ret->ptr_tk_end = match(tokenType::END_RW, nullptr);
+    ptr_ret->ptr_tk_for = match(tokenType::FOR_RW, nullptr);
 
     return ptr_ret;
 }
@@ -515,7 +515,7 @@ nt_retType_return_statement* Parser::parse_return_statement() {
     
     auto ptr_ret = new nt_retType_return_statement();
 
-    ptr_ret->ptr_tk_return = match(tokenType::RETURN_RW);
+    ptr_ret->ptr_tk_return = match(tokenType::RETURN_RW, nullptr);
     ptr_ret->ptr_expression = parse_expression();
 
     return ptr_ret;
@@ -536,7 +536,7 @@ nt_retType_argument_list* Parser::parse_argument_list() {
     auto lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::COMMA) {
-        ptr_ret->ptr_tk_comma = match(tokenType::COMMA);
+        ptr_ret->ptr_tk_comma = match(tokenType::COMMA, nullptr);
         ptr_ret->ptr_argument_list = parse_argument_list();
     }
 
@@ -554,9 +554,9 @@ nt_retType_destination* Parser::parse_destination() {
 
     // TODO delete whichRUle from this class
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
-        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET);
+        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_expression = parse_expression();
-        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET);
+        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
     }
 
     return ptr_ret;
@@ -570,7 +570,7 @@ nt_retType_expression* Parser::parse_expression() {
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::NOT_RW) {
-        ptr_ret->ptr_tk_not = match(tokenType::NOT_RW);
+        ptr_ret->ptr_tk_not = match(tokenType::NOT_RW, nullptr);
     }
 
     ptr_ret->ptr_arithOp = parse_arithOp();
@@ -597,11 +597,11 @@ nt_retType_expression_* Parser::parse_expression_() {
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::AMPERSAND) {
-        ptr_ret->ptr_tk_ampersand = match(tokenType::AMPERSAND);
+        ptr_ret->ptr_tk_ampersand = match(tokenType::AMPERSAND, nullptr);
         ptr_ret->ptr_arithOp = parse_arithOp();
         ptr_ret->ptr_expression_ = parse_expression_();
     } else if (lookahead->getTokenType() == tokenType::PIPE) {
-        ptr_ret->ptr_tk_pipe = match(tokenType::PIPE);
+        ptr_ret->ptr_tk_pipe = match(tokenType::PIPE, nullptr);
         ptr_ret->ptr_arithOp = parse_arithOp();
         ptr_ret->ptr_expression_ = parse_expression_();
     } else {
@@ -632,11 +632,11 @@ nt_retType_arithOp_* Parser::parse_arithOp_() {
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::PLUS) {
-        ptr_ret->ptr_tk_plus = match(tokenType::PLUS);
+        ptr_ret->ptr_tk_plus = match(tokenType::PLUS, nullptr);
         ptr_ret->ptr_relation = parse_relation();
         ptr_ret->ptr_arithOp_ = parse_arithOp_();
     } else if (lookahead->getTokenType() == tokenType::MINUS) {
-        ptr_ret->ptr_tk_plus = match(tokenType::MINUS);
+        ptr_ret->ptr_tk_plus = match(tokenType::MINUS, nullptr);
         ptr_ret->ptr_relation = parse_relation();
         ptr_ret->ptr_arithOp_ = parse_arithOp_();
     } else {
@@ -667,11 +667,11 @@ nt_retType_factor* Parser::parse_factor() {
         lookahead->getTokenTypeStr() << std::endl;
 
     if (lookahead->getTokenType() == tokenType::L_PAREN) {
-        ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN);
+        ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr);
         ptr_ret->ptr_expression = parse_expression();
-        ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN);
+        ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr);
     } else if (lookahead->getTokenType() == tokenType::MINUS) {
-        ptr_ret->ptr_tk_minus = match(tokenType::MINUS);
+        ptr_ret->ptr_tk_minus = match(tokenType::MINUS, nullptr);
 
         lookahead = lexer->getlookahead();
 
@@ -688,9 +688,9 @@ nt_retType_factor* Parser::parse_factor() {
     } else if (lookahead->getTokenType() == tokenType::STRING) {
         ptr_ret->ptr_string = parse_string();
     } else if (lookahead->getTokenType() == tokenType::TRUE_RW) {
-        ptr_ret->ptr_tk_true = match(tokenType::TRUE_RW);
+        ptr_ret->ptr_tk_true = match(tokenType::TRUE_RW, nullptr);
     } else if (lookahead->getTokenType() == tokenType::FALSE_RW) {
-        ptr_ret->ptr_tk_false = match(tokenType::FALSE_RW);
+        ptr_ret->ptr_tk_false = match(tokenType::FALSE_RW, nullptr);
     } else {
         /* ptr_ret->ptr_nameOrProcedure = parse_nameOrProcedure( */
 
@@ -721,9 +721,9 @@ nt_retType_factor* Parser::parse_factor() {
 
         if (lookahead->getTokenType() == tokenType::L_BRACKET) {
             // handle variable[index]
-            tk_name_lbkt = match(tokenType::L_BRACKET);
+            tk_name_lbkt = match(tokenType::L_BRACKET, nullptr);
             ptr_name_expression = parse_expression();
-            tk_name_rbkt = match(tokenType::R_BRACKET);
+            tk_name_rbkt = match(tokenType::R_BRACKET, nullptr);
 
             ptr_name = new nt_retType_name();
             ptr_name->ptr_identifier = ptr_identifier_nameOrProdecure;
@@ -734,7 +734,7 @@ nt_retType_factor* Parser::parse_factor() {
             ptr_ret->ptr_name = ptr_name;
         } else if (lookahead->getTokenType() == tokenType::L_PAREN) {
             // handle procedurename(arg_list)
-            tk_procedurecall_lparen = match(tokenType::L_PAREN);
+            tk_procedurecall_lparen = match(tokenType::L_PAREN, nullptr);
 
             lookahead = lexer->getlookahead();
 
@@ -742,7 +742,7 @@ nt_retType_factor* Parser::parse_factor() {
                 ptr_procedurecall_arglist = parse_argument_list();
             }
 
-            tk_procedurecall_rparen = match(tokenType::R_PAREN);
+            tk_procedurecall_rparen = match(tokenType::R_PAREN, nullptr);
 
             ptr_procedurecall = new nt_retType_procedure_call();
             ptr_procedurecall->ptr_identifier = ptr_identifier_nameOrProdecure;
@@ -771,27 +771,27 @@ nt_retType_relation_* Parser::parse_relation_() {
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::LESS_THAN) {
-        ptr_ret->ptr_tk_lessthan = match(tokenType::LESS_THAN);
+        ptr_ret->ptr_tk_lessthan = match(tokenType::LESS_THAN, nullptr);
         ptr_ret->ptr_term = parse_term();
         ptr_ret->ptr_relation_ = parse_relation_();
     } else if (lookahead->getTokenType() == tokenType::GREATER_EQUAL) {
-        ptr_ret->ptr_tk_lessthan = match(tokenType::GREATER_EQUAL);
+        ptr_ret->ptr_tk_lessthan = match(tokenType::GREATER_EQUAL, nullptr);
         ptr_ret->ptr_term = parse_term();
         ptr_ret->ptr_relation_ = parse_relation_();
     } else if (lookahead->getTokenType() == tokenType::LESS_EQUAL) {
-        ptr_ret->ptr_tk_lessthan = match(tokenType::LESS_EQUAL);
+        ptr_ret->ptr_tk_lessthan = match(tokenType::LESS_EQUAL, nullptr);
         ptr_ret->ptr_term = parse_term();
         ptr_ret->ptr_relation_ = parse_relation_();
     } else if (lookahead->getTokenType() == tokenType::GREATER_THAN) {
-        ptr_ret->ptr_tk_lessthan = match(tokenType::GREATER_THAN);
+        ptr_ret->ptr_tk_lessthan = match(tokenType::GREATER_THAN, nullptr);
         ptr_ret->ptr_term = parse_term();
         ptr_ret->ptr_relation_ = parse_relation_();
     } else if (lookahead->getTokenType() == tokenType::EQUALS) {
-        ptr_ret->ptr_tk_lessthan = match(tokenType::EQUALS);
+        ptr_ret->ptr_tk_lessthan = match(tokenType::EQUALS, nullptr);
         ptr_ret->ptr_term = parse_term();
         ptr_ret->ptr_relation_ = parse_relation_();
     } else if (lookahead->getTokenType() == tokenType::NOT_EQUAL) {
-        ptr_ret->ptr_tk_lessthan = match(tokenType::NOT_EQUAL);
+        ptr_ret->ptr_tk_lessthan = match(tokenType::NOT_EQUAL, nullptr);
         ptr_ret->ptr_term = parse_term();
         ptr_ret->ptr_relation_ = parse_relation_();
     } else {
@@ -811,11 +811,11 @@ nt_retType_term_* Parser::parse_term_() {
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::MULTIPLY) {
-        ptr_ret->ptr_tk_mul = match(tokenType::MULTIPLY);
+        ptr_ret->ptr_tk_mul = match(tokenType::MULTIPLY, nullptr);
         ptr_ret->ptr_factor = parse_factor();
         ptr_ret->ptr_term_ = parse_term_();
     } else if (lookahead->getTokenType() == tokenType::DIVIDE) {
-        ptr_ret->ptr_tk_mul = match(tokenType::DIVIDE);
+        ptr_ret->ptr_tk_mul = match(tokenType::DIVIDE, nullptr);
         ptr_ret->ptr_factor = parse_factor();
         ptr_ret->ptr_term_ = parse_term_();
     } else {
@@ -837,9 +837,9 @@ nt_retType_name* Parser::parse_name() {
     Token *lookahead = lexer->getlookahead();
     std::cout << "h1\n" << std::endl;
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
-        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET);
+        ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_expression = parse_expression();
-        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET);
+        ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
     }
 
     return ptr_ret;
@@ -849,7 +849,7 @@ nt_retType_name* Parser::parse_name() {
 nt_retType_string* Parser::parse_string() {
     nt_retType_string* ptr_ret;
 
-    ptr_ret->ptr_tk_str = match(tokenType::STRING);
+    ptr_ret->ptr_tk_str = match(tokenType::STRING, nullptr);
 
     return ptr_ret;
 }

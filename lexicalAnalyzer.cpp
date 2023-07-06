@@ -23,7 +23,7 @@ void LexicalAnalyzer::runLexer() {
 
     while (srcFile->isgood()) {
         std::cerr << "scanning..." << std::endl;
-        auto tok = scan();
+        auto tok = scan(nullptr);
         tok->printToken();
     }
 
@@ -96,7 +96,7 @@ void LexicalAnalyzer::initSymbolTable() {
     };
 
     for (auto p: vec_rwToktype) {
-        tok = symTab.lookupTokenString(p.first);
+        tok = symTab.lookupTokenString(p.first, nullptr);
         tok->setTokenType(p.second);
 
         /* tok->printTokenString(); */
@@ -262,7 +262,7 @@ bool LexicalAnalyzer::isWhitespace() {
 }
 
 
-Token* LexicalAnalyzer::scan() {
+Token* LexicalAnalyzer::scan(std::pair<bool, SymInfo*>* syminfo) {
 
     /* SymbolTable symTab; */
 
@@ -284,7 +284,7 @@ Token* LexicalAnalyzer::scan() {
     }
 
     // TODO check isgood() ?
-    return buildToken();
+    return buildToken(syminfo);
 }
 
 
@@ -294,7 +294,7 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
     return symTab;
 }
 
-Token* LexicalAnalyzer::buildToken() {
+Token* LexicalAnalyzer::buildToken(std::pair<bool, SymInfo*>* syminfo) {
 
     prerr("bt");
 
@@ -410,7 +410,7 @@ Token* LexicalAnalyzer::buildToken() {
 
             // identifier
             /* std::cout << "going to lookup..\n"; */
-            return symTab.lookupTokenString(tokenStr);  // TODO no need to use new() since 
+            return symTab.lookupTokenString(tokenStr, nullptr);
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
             /* tok->setTokenType(tokenType::PROGRAM_RW); */
@@ -506,7 +506,7 @@ int LexicalAnalyzer::getPos() {
 Token* LexicalAnalyzer::getlookahead() {
     int pos = getPos();
 
-    Token *tk = scan();
+    Token *tk = scan(nullptr);
 
     // resetting ?
     setinFilepos(pos);

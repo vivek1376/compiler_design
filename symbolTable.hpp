@@ -13,6 +13,12 @@ class SymInfo {
         // for identifier tokens
         enum symType {VAR, PROC, CONST, OTHERS};
         enum symDatatype {INT, FLOAT, STR, BOOL, ARRAY, NA};
+
+        Token *tok;
+
+    public:
+        /* Tokeninfo(Token* tok, SymInfo *syminfo); */
+        Token* getToken();
 };
 
 
@@ -25,23 +31,21 @@ class SymInfo_array : public SymInfo {
 class SymInfo_proc : public SymInfo {
 };
 
-class Tokeninfo {
-    private:
-        Token *tok;
-        SymInfo *syminfo;
+/* class Tokeninfo { */
+/*     private: */
+/*         Token *tok; */
+/*         SymInfo *syminfo; */
 
-    public:
-        Tokeninfo(Token* tok, SymInfo *syminfo);
-};
+/* }; */
 
 
 class SymbolTable {
     private:
-        std::vector<std::unordered_map<std::string, Tokeninfo*>> vec_symtab;
+        std::vector<std::unordered_map<std::string, SymInfo*>> vec_symtab;
         /* std::unordered_map<std::string, Token*> map_symTab; */
 
     public:
-        std::pair<int, Tokeninfo*> lookupTokenString(std::string tokenStr);
+        Token* lookupTokenString(std::string, std::pair<bool, SymInfo*>*);
 
         void printTable();
 

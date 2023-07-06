@@ -11,7 +11,6 @@
 #include <cctype>
 
 #include "inFile.hpp"
-#include "token.hpp"
 #include "symbolTable.hpp"
 #include "helperFunctions.hpp"
 #include "reporting.hpp"
@@ -32,9 +31,9 @@ class LexicalAnalyzer {
         bool ifEndBlockComment();
         void processComments();
         bool isComment();
-        Token* buildToken();
+        Token* buildToken(std::pair<bool, SymInfo*>*);
         void initSymbolTable();
-        Token* scan();
+        Token* scan(std::pair<bool, SymInfo*>*);
         bool ifThisChar(char ch);
         void runLexer();
         SymbolTable& getSymbolTable();

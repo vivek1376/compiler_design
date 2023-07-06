@@ -1,7 +1,7 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include "token.hpp"
+#include "symbolTable.hpp"
 #include "lexicalAnalyzer.hpp"
 #include "prodRetType.hpp"
 
@@ -60,7 +60,7 @@ class Parser {
 
 
         /* Token* getNextToken(); */
-        Token* match(tokenType);
+        Token* match(tokenType tt, std::pair<bool, SymInfo*>*);
 
         // parser fns
 
