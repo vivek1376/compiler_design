@@ -44,9 +44,9 @@ Parser* Parser::getInstance() {
 }
 
 
-Token* Parser::match(tokenType tt, std::pair<bool, SymInfo*>* syminfo) {
+Token* Parser::match(tokenType tt, SymbolScopeInfo* symscopeinfo) {
     // match token and consume (scan() will advance file pointer)
-    Token *tok = lexer->scan(syminfo);
+    Token *tok = lexer->scan(symscopeinfo);
 
     std::cout << "match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
         + tok->getTokenTypeStr() + "\n";
@@ -58,7 +58,11 @@ Token* Parser::match(tokenType tt, std::pair<bool, SymInfo*>* syminfo) {
     if (tok->getTokenType() == tt) {
         return tok;
     } else {
-        logger->reportError("token not matched!");
+        Token tmpTok(tt, "tmptoken");
+        logger->reportError("token not matched - expected / actual: " 
+                + tmpTok.getTokenStr()
+                + " / "
+                + tok->getTokenStr());
 
         // tokenType isn't as expected
         tok->setTokenType(tokenType::INVALID);
@@ -102,7 +106,7 @@ nt_retType_program_header* Parser::parse_program_header() {
     // match(tk);
 
     ptr_ret->ptr_tk_program = match(tokenType::PROGRAM_RW, nullptr);
-    ptr_ret->ptr_identifier = parse_identifier();
+    ptr_ret->ptr_identifier = parse_identifier(nullptr);
 
     ptr_ret->ptr_tk_is = match(tokenType::IS_RW, nullptr);
 
@@ -220,22 +224,49 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     nt_retType_variable_declaration* ptr_ret = new nt_retType_variable_declaration();
 
-    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr);
-    ptr_ret->ptr_identifier = parse_identifier();
+    SymInfo syminfo;
+
+    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr);  // TODO add ret value check for invalid token ?
+
+    if (ptr_ret->ptr_tk_variable->getTokenType() == tokenType::INVALID) {
+        logger->reportError("VARIABLE_RW not found!");
+        ptr_ret->returnCode = false;
+    }
+
+    SymbolScopeInfo symscopeinfo;
+    ptr_ret->ptr_identifier = parse_identifier(&symscopeinfo);
 
     if (ptr_ret->ptr_identifier->returnCode == false) {
-        logger->reportError("Missing name");
+        logger->reportError("Identifier parse error");
+        ptr_ret->returnCode = false;
+    }
+
+    // check duplicate
+    if (symscopeinfo.inCurrentScope == true) {
+        logger->reportError("Duplicate symbol declaration");
         ptr_ret->returnCode = false;
 
         return ptr_ret;
     }
 
-    // verify variable is not being re-declared
-
-
 
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
-    ptr_ret->ptr_type_mark = parse_type_mark();
+
+
+    ptr_ret->ptr_type_mark = parse_type_mark(&symscopeinfo);
+
+    if (ptr_ret->ptr_type_mark->ptr_tk_integer) {
+        syminfo.symdtype = symDatatype::INT_DTYPE;
+    } else if (ptr_ret->ptr_type_mark->ptr_tk_float) {
+        syminfo.symdtype = symDatatype::FLOAT_DTYPE;
+    } else if (ptr_ret->ptr_type_mark->ptr_tk_string) {
+        syminfo.symdtype = symDatatype::STR_DTYPE;
+    } else if (ptr_ret->ptr_type_mark->ptr_tk_bool) {
+        syminfo.symdtype = symDatatype::BOOL_DTYPE;
+    } 
+
+
+
 
     ptr_ret->ptr_tk_lbkt = nullptr;
     ptr_ret->ptr_tk_rbkt = nullptr;
@@ -250,6 +281,9 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
     }
 
+    // add type checking
+ 
+
     return ptr_ret;
 }
 
@@ -259,9 +293,9 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
     auto ptr_ret = new nt_retType_procedure_header();
 
     ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW, nullptr);
-    ptr_ret->ptr_identifier = parse_identifier();
+    ptr_ret->ptr_identifier = parse_identifier(nullptr);
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
-    ptr_ret->ptr_type_mark = parse_type_mark();
+    ptr_ret->ptr_type_mark = parse_type_mark(nullptr);
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr);
 
@@ -315,12 +349,12 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
 }
 
 
-nt_retType_identifier* Parser::parse_identifier() {
+nt_retType_identifier* Parser::parse_identifier(SymbolScopeInfo *symscopeinfo) {
     // TODO define identifier only as terminal ?
 
     nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
-    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, nullptr);
+    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, symscopeinfo);
 
     return ptr_ret;
     /* Token* tk = lexer->scan(); */
@@ -333,7 +367,7 @@ nt_retType_identifier* Parser::parse_identifier() {
 }
 
 
-nt_retType_type_mark* Parser::parse_type_mark() {
+nt_retType_type_mark* Parser::parse_type_mark(SymbolScopeInfo* symscopeinfo) {
     nt_retType_type_mark* ptr_ret = new nt_retType_type_mark();
 
     ptr_ret->ptr_tk_bool = nullptr;
@@ -346,11 +380,11 @@ nt_retType_type_mark* Parser::parse_type_mark() {
     if (lookahead->getTokenType() == tokenType::INTEGER_RW)
         ptr_ret->ptr_tk_integer = match(tokenType::INTEGER_RW, nullptr);
     else if (lookahead->getTokenType() == tokenType::FLOAT_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::FLOAT_RW, nullptr);
+        ptr_ret->ptr_tk_float = match(tokenType::FLOAT_RW, nullptr);
     else if (lookahead->getTokenType() == tokenType::STRING_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::STRING_RW, nullptr);
+        ptr_ret->ptr_tk_string = match(tokenType::STRING_RW, nullptr);
     else if (lookahead->getTokenType() == tokenType::BOOL_RW)
-        ptr_ret->ptr_tk_integer = match(tokenType::BOOL_RW, nullptr);
+        ptr_ret->ptr_tk_bool = match(tokenType::BOOL_RW, nullptr);
 
     // TODO throw
 
@@ -549,7 +583,7 @@ nt_retType_destination* Parser::parse_destination() {
 
     nt_retType_destination *ptr_ret = new nt_retType_destination();
 
-    ptr_ret->ptr_identifier = parse_identifier();
+    ptr_ret->ptr_identifier = parse_identifier(nullptr);
 
     Token* lookahead = lexer->getlookahead();
 
@@ -703,7 +737,7 @@ nt_retType_factor* Parser::parse_factor() {
          * lookahead already points to identifier (common to both procedure_call and name)
          */
 
-        nt_retType_identifier* ptr_identifier_nameOrProdecure = parse_identifier();
+        nt_retType_identifier* ptr_identifier_nameOrProdecure = parse_identifier(nullptr);
 
         lookahead = lexer->getlookahead();
 
@@ -833,7 +867,7 @@ nt_retType_name* Parser::parse_name() {
 
     nt_retType_name* ptr_ret = new nt_retType_name();
 
-    ptr_ret->ptr_identifier = parse_identifier();
+    ptr_ret->ptr_identifier = parse_identifier(nullptr);
 
     Token *lookahead = lexer->getlookahead();
     std::cout << "h1\n" << std::endl;
@@ -853,4 +887,4 @@ nt_retType_string* Parser::parse_string() {
     ptr_ret->ptr_tk_str = match(tokenType::STRING, nullptr);
 
     return ptr_ret;
-}
+

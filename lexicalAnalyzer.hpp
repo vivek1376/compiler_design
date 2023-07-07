@@ -31,9 +31,9 @@ class LexicalAnalyzer {
         bool ifEndBlockComment();
         void processComments();
         bool isComment();
-        Token* buildToken(std::pair<bool, SymInfo*>*);
+        Token* buildToken(SymbolScopeInfo*);
         void initSymbolTable();
-        Token* scan(std::pair<bool, SymInfo*>*);
+        Token* scan(SymbolScopeInfo*);
         bool ifThisChar(char ch);
         void runLexer();
         SymbolTable& getSymbolTable();

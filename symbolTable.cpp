@@ -20,9 +20,8 @@ void SymbolTable::addTable() {
 }
 
 
-Token* SymbolTable::lookupTokenString(std::string tokenStr, std::pair<bool, SymInfo*>* symInfo) {
+Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) {
     // lookup in current scope, insert if not present in current scope
-    // -1 means new symbol in entire program so far
     // NOTE symbol table is only for identifiers
 
     int numScopes = vec_symtab.size();
@@ -32,9 +31,9 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, std::pair<bool, SymI
     if (vec_symtab.back().find(tokenStr) != vec_symtab.back().end()) {
         std::cerr << "inside\n" << std::endl;
 
-        if (symInfo) {
-            symInfo->first = true;
-            symInfo->second = vec_symtab.back().find(tokenStr)->second;
+        if (symscopeinfo) {
+            symscopeinfo->inCurrentScope = true;
+            symscopeinfo->syminfo = vec_symtab.back().find(tokenStr)->second;
         }
 
         return vec_symtab.back().find(tokenStr)->second->getToken();

@@ -60,7 +60,7 @@ class Parser {
 
 
         /* Token* getNextToken(); */
-        Token* match(tokenType tt, std::pair<bool, SymInfo*>*);
+        Token* match(tokenType tt, SymbolScopeInfo*);
 
         // parser fns
 
@@ -74,8 +74,8 @@ class Parser {
         nt_retType_variable_declaration* parse_variable_declaration();
         nt_retType_procedure_header* parse_procedure_header();
         nt_retType_procedure_body* parse_procedure_body();
-        nt_retType_identifier* parse_identifier();
-        nt_retType_type_mark* parse_type_mark();
+        nt_retType_identifier* parse_identifier(SymbolScopeInfo*);
+        nt_retType_type_mark* parse_type_mark(SymbolScopeInfo*);
         nt_retType_parameter_list* parse_parameter_list();
         nt_retType_parameter* parse_parameter();
         nt_retType_bound* parse_bound();
@@ -118,7 +118,7 @@ class nt_retType {
     public:
         bool returnCode;
         nt_retType();
-
+        SymbolScopeInfo *symscopeinfo;
 };
 
 

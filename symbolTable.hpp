@@ -8,18 +8,24 @@
 #include <unordered_map>
 #include "token.hpp"
 
+enum symType {VAR_SYM, PROC_SYM, CONST_SYM, OTHERS_SYM};
+enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE};
+
 class SymInfo {
     protected:
         // for identifier tokens
-        enum symType {VAR, PROC, CONST, OTHERS};
-        enum symDatatype {INT, FLOAT, STR, BOOL, ARRAY, NA};
 
-        Token *tok;
 
     public:
         /* Tokeninfo(Token* tok, SymInfo *syminfo); */
+
+        // TODO explain purpose
         SymInfo(Token*);
+        SymInfo() = default;  // TODO change ?
         Token* getToken();
+        Token *tok;
+        symType symtype;
+        symDatatype symdtype;
 };
 
 
@@ -39,6 +45,11 @@ class SymInfo_proc : public SymInfo {
 
 /* }; */
 
+class SymbolScopeInfo {
+    public:
+        bool inCurrentScope;
+        SymInfo *syminfo;
+};
 
 class SymbolTable {
     private:
@@ -46,7 +57,7 @@ class SymbolTable {
         /* std::unordered_map<std::string, Token*> map_symTab; */
 
     public:
-        Token* lookupTokenString(std::string, std::pair<bool, SymInfo*>*);
+        Token* lookupTokenString(std::string, SymbolScopeInfo*);
 
         void printTable();
         void addTable();
