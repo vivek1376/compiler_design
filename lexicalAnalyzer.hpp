@@ -31,9 +31,9 @@ class LexicalAnalyzer {
         bool ifEndBlockComment();
         void processComments();
         bool isComment();
-        Token* buildToken(SymbolScopeInfo*);
+        Token* buildToken(bool*);
         void initSymbolTable();
-        Token* scan(SymbolScopeInfo*);
+        Token* scan(bool*);
         bool ifThisChar(char ch);
         void runLexer();
         SymbolTable& getSymbolTable();

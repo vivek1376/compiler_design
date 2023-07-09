@@ -267,7 +267,7 @@ bool LexicalAnalyzer::isWhitespace() {
 }
 
 
-Token* LexicalAnalyzer::scan(SymbolScopeInfo *symscopeinfo) {
+Token* LexicalAnalyzer::scan(bool *inCurrentScope) {
 
     /* SymbolTable symTab; */
 
@@ -289,7 +289,7 @@ Token* LexicalAnalyzer::scan(SymbolScopeInfo *symscopeinfo) {
     }
 
     // TODO check isgood() ?
-    return buildToken(symscopeinfo);
+    return buildToken(inCurrentScope);
 }
 
 
@@ -299,7 +299,8 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
     return symTab;
 }
 
-Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) {
+/* Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) { */
+Token* LexicalAnalyzer::buildToken(bool* inCurrentScope) {
 
     prerr("bt");
 
@@ -415,7 +416,7 @@ Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) {
 
             // identifier
             /* std::cout << "going to lookup..\n"; */
-            return symTab.lookupTokenString(tokenStr, symscopeinfo);
+            return symTab.lookupTokenString(tokenStr, inCurrentScope);
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
             /* tok->setTokenType(tokenType::PROGRAM_RW); */

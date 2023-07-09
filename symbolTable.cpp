@@ -20,7 +20,8 @@ void SymbolTable::addTable() {
 }
 
 
-Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) {
+/* Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) { */
+Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* inCurrentScope) {
     // lookup in current scope, insert if not present in current scope
     // NOTE symbol table is only for identifiers
 
@@ -31,10 +32,13 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *sym
     if (vec_symtab.back().find(tokenStr) != vec_symtab.back().end()) {
         std::cerr << "inside\n" << std::endl;
 
-        if (symscopeinfo) {
-            symscopeinfo->inCurrentScope = true;
-            symscopeinfo->syminfo = vec_symtab.back().find(tokenStr)->second;
+        if (inCurrentScope) {
+            *inCurrentScope = true;
         }
+        /* if (symscopeinfo) { */
+        /*     symscopeinfo->inCurrentScope = true; */
+        /*     symscopeinfo->syminfo = vec_symtab.back().find(tokenStr)->second; */
+        /* } */
 
         return vec_symtab.back().find(tokenStr)->second->getToken();
     }
@@ -70,6 +74,8 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *sym
                 /*     new SymInfo()))); */
 
     std::cout << "inserted...\n" << std::endl;
+
+    *inCurrentScope = false;
     return vec_symtab.back().find(tokenStr)->second->getToken();
 }
 

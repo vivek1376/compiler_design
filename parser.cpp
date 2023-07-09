@@ -44,9 +44,9 @@ Parser* Parser::getInstance() {
 }
 
 
-Token* Parser::match(tokenType tt, SymbolScopeInfo* symscopeinfo) {
+Token* Parser::match(tokenType tt, bool* inCurrentScope) {
     // match token and consume (scan() will advance file pointer)
-    Token *tok = lexer->scan(symscopeinfo);
+    Token *tok = lexer->scan(inCurrentScope);
 
     std::cout << "match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
         + tok->getTokenTypeStr() + "\n";
@@ -233,8 +233,9 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         ptr_ret->returnCode = false;
     }
 
-    SymbolScopeInfo symscopeinfo;
-    ptr_ret->ptr_identifier = parse_identifier(&symscopeinfo);
+
+    bool inCurrentScope;
+    ptr_ret->ptr_identifier = parse_identifier(&inCurrentScope);
 
     if (ptr_ret->ptr_identifier->returnCode == false) {
         logger->reportError("Identifier parse error");
@@ -242,7 +243,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     }
 
     // check duplicate
-    if (symscopeinfo.inCurrentScope == true) {
+    if (inCurrentScope == true) {
         logger->reportError("Duplicate symbol declaration");
         ptr_ret->returnCode = false;
 
@@ -253,7 +254,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
 
 
-    ptr_ret->ptr_type_mark = parse_type_mark(&symscopeinfo);
+    ptr_ret->ptr_type_mark = parse_type_mark();
 
     if (ptr_ret->ptr_type_mark->ptr_tk_integer) {
         syminfo.symdtype = symDatatype::INT_DTYPE;
@@ -276,6 +277,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     // TODO delete whichRUle from this class
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
+        SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo);
         ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_bound = parse_bound();
         ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
@@ -295,7 +297,7 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
     ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW, nullptr);
     ptr_ret->ptr_identifier = parse_identifier(nullptr);
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
-    ptr_ret->ptr_type_mark = parse_type_mark(nullptr);
+    ptr_ret->ptr_type_mark = parse_type_mark();
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr);
 
@@ -349,12 +351,12 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
 }
 
 
-nt_retType_identifier* Parser::parse_identifier(SymbolScopeInfo *symscopeinfo) {
+nt_retType_identifier* Parser::parse_identifier(bool *inCurrentScope) {
     // TODO define identifier only as terminal ?
 
     nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
-    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, symscopeinfo);
+    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope);
 
     return ptr_ret;
     /* Token* tk = lexer->scan(); */
@@ -367,7 +369,7 @@ nt_retType_identifier* Parser::parse_identifier(SymbolScopeInfo *symscopeinfo) {
 }
 
 
-nt_retType_type_mark* Parser::parse_type_mark(SymbolScopeInfo* symscopeinfo) {
+nt_retType_type_mark* Parser::parse_type_mark() {
     nt_retType_type_mark* ptr_ret = new nt_retType_type_mark();
 
     ptr_ret->ptr_tk_bool = nullptr;
@@ -882,9 +884,11 @@ nt_retType_name* Parser::parse_name() {
 
 
 nt_retType_string* Parser::parse_string() {
+
     nt_retType_string* ptr_ret;
 
     ptr_ret->ptr_tk_str = match(tokenType::STRING, nullptr);
 
     return ptr_ret;
+}
 

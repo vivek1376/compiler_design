@@ -23,6 +23,7 @@ class SymInfo {
         SymInfo(Token*);
         SymInfo() = default;  // TODO change ?
         Token* getToken();
+
         Token *tok;
         symType symtype;
         symDatatype symdtype;
@@ -57,7 +58,7 @@ class SymbolTable {
         /* std::unordered_map<std::string, Token*> map_symTab; */
 
     public:
-        Token* lookupTokenString(std::string, SymbolScopeInfo*);
+        Token* lookupTokenString(std::string, bool*);
 
         void printTable();
         void addTable();
