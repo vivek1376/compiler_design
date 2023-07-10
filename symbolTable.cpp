@@ -8,9 +8,18 @@
 
 SymInfo::SymInfo(Token* token) : tok(token) {}
 
+SymInfo::SymInfo(const SymInfo& that) {
+    /* tok = new Token(); */
+
+}
 
 Token* SymInfo::getToken() {
     return tok;
+}
+
+
+SymInfo_array::SymInfo_array(const SymInfo& that) : SymInfo(that) {
+    std::cout << "copy constructor called" << std::endl;
 }
 
 
@@ -75,7 +84,10 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* inCurrentScope
 
     std::cout << "inserted...\n" << std::endl;
 
-    *inCurrentScope = false;
+    if (inCurrentScope) {
+        *inCurrentScope = false;
+    }
+
     return vec_symtab.back().find(tokenStr)->second->getToken();
 }
 

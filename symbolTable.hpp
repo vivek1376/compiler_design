@@ -27,12 +27,17 @@ class SymInfo {
         Token *tok;
         symType symtype;
         symDatatype symdtype;
+
+        SymInfo(const SymInfo& that);
 };
 
 
 class SymInfo_array : public SymInfo {
     public:  // TODO change to private, and add getter/setter
         int size;
+
+        SymInfo_array(const SymInfo& that);
+        /* SymInfo_array(const SymInfo_array& that); */
 };
 
 

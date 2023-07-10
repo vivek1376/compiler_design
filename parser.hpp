@@ -118,9 +118,9 @@ class nt_retType {
     public:
         bool returnCode;
         nt_retType();
-        SymbolScopeInfo *symscopeinfo;
+        SymbolScopeInfo *symscopeinfo;  // TODO or syminfo ?
+        SymInfo *syminfo;
 };
-
 
 
 class nt_retType_program : public nt_retType {

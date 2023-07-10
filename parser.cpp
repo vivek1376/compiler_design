@@ -224,7 +224,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     nt_retType_variable_declaration* ptr_ret = new nt_retType_variable_declaration();
 
-    SymInfo syminfo;
+    SymInfo* syminfo = new SymInfo();
 
     ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr);  // TODO add ret value check for invalid token ?
 
@@ -257,14 +257,14 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     ptr_ret->ptr_type_mark = parse_type_mark();
 
     if (ptr_ret->ptr_type_mark->ptr_tk_integer) {
-        syminfo.symdtype = symDatatype::INT_DTYPE;
+        syminfo->symdtype = symDatatype::INT_DTYPE;
     } else if (ptr_ret->ptr_type_mark->ptr_tk_float) {
-        syminfo.symdtype = symDatatype::FLOAT_DTYPE;
+        syminfo->symdtype = symDatatype::FLOAT_DTYPE;
     } else if (ptr_ret->ptr_type_mark->ptr_tk_string) {
-        syminfo.symdtype = symDatatype::STR_DTYPE;
+        syminfo->symdtype = symDatatype::STR_DTYPE;
     } else if (ptr_ret->ptr_type_mark->ptr_tk_bool) {
-        syminfo.symdtype = symDatatype::BOOL_DTYPE;
-    } 
+        syminfo->symdtype = symDatatype::BOOL_DTYPE;
+    }
 
 
 
@@ -277,14 +277,22 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     // TODO delete whichRUle from this class
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
-        SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo);
+        /* SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo); */
+        /* SymInfo_array *sym_arr = new SymInfo_array(dynamic_cast<const SymInfo_array&>(syminfo)); */
+        SymInfo_array *sym_arr = new SymInfo_array(*syminfo);
+
         ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_bound = parse_bound();
         ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
+
+        /* ptr_ret->syminfo = sym_arr; */
     }
 
     // add type checking
  
+
+
+
 
     return ptr_ret;
 }
