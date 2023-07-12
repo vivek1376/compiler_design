@@ -17,18 +17,21 @@ class SymInfo {
 
 
     public:
-        /* Tokeninfo(Token* tok, SymInfo *syminfo); */
-
-        // TODO explain purpose
-        SymInfo(Token*);
-        SymInfo() = default;  // TODO change ?
-        Token* getToken();
 
         Token *tok;
         symType symtype;
         symDatatype symdtype;
 
+
+        /* Tokeninfo(Token* tok, SymInfo *syminfo); */
+
+        // TODO explain purpose
+        SymInfo() = default;  // TODO change ?
+        SymInfo(Token*);
+        Token* getToken();
         SymInfo(const SymInfo& that);
+        // TODO define copy assignment too?
+
 };
 
 

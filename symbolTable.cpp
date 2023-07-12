@@ -6,12 +6,24 @@
 /*     , syminfo{syminfo} {} */
 
 
-SymInfo::SymInfo(Token* token) : tok(token) {}
+/* SymInfo::SymInfo(Token* token) : tok(token) {} */
+SymInfo::SymInfo(Token* token) {
+    tok = new Token(*token);
+}
+
 
 SymInfo::SymInfo(const SymInfo& that) {
     /* tok = new Token(); */
+    std::cout << "syminfo copy constructor called" << std::endl;
+    std::cout << std::hex << that.tok << std::endl;
+    tok = new Token(*that.tok);
+    std::cout << "after Token copy" << std::endl;
 
+    /* tok = new Token(); */
+    symtype = that.symtype;
+    symdtype = that.symdtype;
 }
+
 
 Token* SymInfo::getToken() {
     return tok;
@@ -19,7 +31,7 @@ Token* SymInfo::getToken() {
 
 
 SymInfo_array::SymInfo_array(const SymInfo& that) : SymInfo(that) {
-    std::cout << "copy constructor called" << std::endl;
+    std::cout << "Syminfo_array copy called" << std::endl;
 }
 
 

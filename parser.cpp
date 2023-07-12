@@ -224,10 +224,9 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     nt_retType_variable_declaration* ptr_ret = new nt_retType_variable_declaration();
 
-    SymInfo* syminfo = new SymInfo();
 
     ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr);  // TODO add ret value check for invalid token ?
-
+    // check
     if (ptr_ret->ptr_tk_variable->getTokenType() == tokenType::INVALID) {
         logger->reportError("VARIABLE_RW not found!");
         ptr_ret->returnCode = false;
@@ -237,14 +236,18 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     bool inCurrentScope;
     ptr_ret->ptr_identifier = parse_identifier(&inCurrentScope);
 
+    // check
     if (ptr_ret->ptr_identifier->returnCode == false) {
         logger->reportError("Identifier parse error");
         ptr_ret->returnCode = false;
     }
 
+    SymInfo* syminfo = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str);
+
     // check duplicate
     if (inCurrentScope == true) {
-        logger->reportError("Duplicate symbol declaration");
+        logger->reportError("Duplicate symbol declaration: " 
+                + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr());
         ptr_ret->returnCode = false;
 
         return ptr_ret;
@@ -279,7 +282,12 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
         /* SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo); */
         /* SymInfo_array *sym_arr = new SymInfo_array(dynamic_cast<const SymInfo_array&>(syminfo)); */
+
         SymInfo_array *sym_arr = new SymInfo_array(*syminfo);
+        // TODO delete syminfo ?
+       
+        // print - working
+        /* std::cout << "printing syminfo_arr: " << sym_arr->tok->getTokenStr() << std::endl; */
 
         ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_bound = parse_bound();
