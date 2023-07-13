@@ -57,6 +57,7 @@ class Parser {
         void initLexer(LexicalAnalyzer*);
         void initLogger(Reporting*);
         LexicalAnalyzer* getLexer();
+        void updateSymbolTable(Token*);
 
 
         /* Token* getNextToken(); */

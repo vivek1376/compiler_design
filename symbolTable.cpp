@@ -35,6 +35,8 @@ SymInfo_array::SymInfo_array(const SymInfo& that) : SymInfo(that) {
 }
 
 
+SymInfo_proc::SymInfo_proc(Token* tok) : SymInfo(tok) {}
+
 void SymbolTable::addTable() {
     // TODO change ?
     vec_symtab.push_back(std::unordered_map<std::string, SymInfo*>());
@@ -42,7 +44,7 @@ void SymbolTable::addTable() {
 
 
 /* Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) { */
-Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* inCurrentScope) {
+Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentScope) {
     // lookup in current scope, insert if not present in current scope
     // NOTE symbol table is only for identifiers
 
@@ -53,11 +55,11 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* inCurrentScope
     if (vec_symtab.back().find(tokenStr) != vec_symtab.back().end()) {
         std::cerr << "inside\n" << std::endl;
 
-        if (inCurrentScope) {
-            *inCurrentScope = true;
+        if (ptr_inCurrentScope) {
+            *ptr_inCurrentScope = true;
         }
         /* if (symscopeinfo) { */
-        /*     symscopeinfo->inCurrentScope = true; */
+        /*     symscopeinfo->ptr_inCurrentScope = true; */
         /*     symscopeinfo->syminfo = vec_symtab.back().find(tokenStr)->second; */
         /* } */
 
@@ -86,18 +88,18 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* inCurrentScope
     /* map_symTab.insert(std::make_pair(tokenStr, */ 
     /*             new Token(tokenType::IDENTIFIER, tokenStr))); */
 
-    std::cout << "inserting...\n" << std::endl;
+    std::cout << "inserting... tokenStr: " << tokenStr << std::endl;
     vec_symtab.back().insert(std::make_pair(tokenStr, new SymInfo(
-                    new Token(tokenType::IDENTIFIER, tokenStr))));
-                                                                        // u
+            new Token(tokenType::IDENTIFIER, tokenStr))));
+
                 /* new Tokeninfo( */
                 /*     new Token(tokenType::IDENTIFIER, tokenStr), */
                 /*     new SymInfo()))); */
 
-    std::cout << "inserted...\n" << std::endl;
+    std::cout << "inserted... size of symbol table: " << vec_symtab.back().size() << std::endl;
 
-    if (inCurrentScope) {
-        *inCurrentScope = false;
+    if (ptr_inCurrentScope) {
+        *ptr_inCurrentScope = false;
     }
 
     return vec_symtab.back().find(tokenStr)->second->getToken();

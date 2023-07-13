@@ -28,7 +28,8 @@ enum tokenType {
     /* QUOTE = '"',  // TODO no need for separate quote token ? */
     DOT = '.',  
     IDENTIFIER = 1025,
-    INTEGER = 1026, FLOAT = 1027, STRING = 1028, EOFILE = 1029, INVALID = 1030
+    INTEGER = 1026, FLOAT = 1027, STRING = 1028, EOFILE = 1029, INVALID = 1030,
+    UNKNOWN = 1031  // to use when adding entry to symTab
         // EOF? add more
 };
 

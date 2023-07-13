@@ -27,7 +27,7 @@ class SymInfo {
 
         // TODO explain purpose
         SymInfo() = default;  // TODO change ?
-        SymInfo(Token*);
+        explicit SymInfo(Token*);
         Token* getToken();
         SymInfo(const SymInfo& that);
         // TODO define copy assignment too?
@@ -39,12 +39,19 @@ class SymInfo_array : public SymInfo {
     public:  // TODO change to private, and add getter/setter
         int size;
 
-        SymInfo_array(const SymInfo& that);
+        explicit SymInfo_array(const SymInfo& that);
         /* SymInfo_array(const SymInfo_array& that); */
 };
 
 
 class SymInfo_proc : public SymInfo {
+
+    public:
+
+        std::vector<SymInfo*> list_param;
+
+        explicit SymInfo_proc(Token*);
+
 };
 
 /* class Tokeninfo { */

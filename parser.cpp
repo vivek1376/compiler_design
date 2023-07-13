@@ -35,6 +35,11 @@ void Parser::initLogger(Reporting* logger) {
 }
 
 
+void Parser::updateSymbolTable(Token* tok) {
+
+}
+
+
 Parser* Parser::getInstance() {
     if (!instance_) {
         instance_ = new Parser();
@@ -59,8 +64,8 @@ Token* Parser::match(tokenType tt, bool* inCurrentScope) {
         return tok;
     } else {
         Token tmpTok(tt, "tmptoken");
-        logger->reportError("token not matched - expected / actual: " 
-                + tmpTok.getTokenStr()
+        logger->reportError("token not matched - expected type / actual: " 
+                + tmpTok.getTokenTypeStr()
                 + " / "
                 + tok->getTokenStr());
 
@@ -100,14 +105,15 @@ nt_retType_program* Parser::parse_program() {
 
 
 nt_retType_program_header* Parser::parse_program_header() {
-    nt_retType_program_header* ptr_ret = new nt_retType_program_header();
+    auto ptr_ret = new nt_retType_program_header();
 
     // Token* tk = new Token(tokenType::PROGRAM_RW, "program");
     // match(tk);
 
     ptr_ret->ptr_tk_program = match(tokenType::PROGRAM_RW, nullptr);
-    ptr_ret->ptr_identifier = parse_identifier(nullptr);
+    // TODO add check ?
 
+    ptr_ret->ptr_identifier = parse_identifier(nullptr);
     ptr_ret->ptr_tk_is = match(tokenType::IS_RW, nullptr);
 
     return ptr_ret;
@@ -209,12 +215,16 @@ nt_retType_statement* Parser::parse_statement() {
 }
 
 
+
 nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
     
     auto ptr_ret = new nt_retType_procedure_declaration();
 
     ptr_ret->ptr_procedure_header = parse_procedure_header();
+    if (!ptr_ret->ptr_procedure_header->returnCode) ptr_ret->returnCode = false;
+
     ptr_ret->ptr_procedure_body = parse_procedure_body();
+    if (!ptr_ret->ptr_procedure_body->returnCode) ptr_ret->returnCode =  false;
 
     return ptr_ret;
 }
@@ -222,7 +232,7 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
 
 nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
-    nt_retType_variable_declaration* ptr_ret = new nt_retType_variable_declaration();
+    auto ptr_ret = new nt_retType_variable_declaration();
 
 
     ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr);  // TODO add ret value check for invalid token ?
@@ -237,15 +247,16 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     ptr_ret->ptr_identifier = parse_identifier(&inCurrentScope);
 
     // check
-    if (ptr_ret->ptr_identifier->returnCode == false) {
+    if (!ptr_ret->ptr_identifier->returnCode) {
         logger->reportError("Identifier parse error");
         ptr_ret->returnCode = false;
     }
 
-    SymInfo* syminfo = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str);
+    auto syminfo = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str);
+    ptr_ret->syminfo = syminfo;
 
     // check duplicate
-    if (inCurrentScope == true) {
+    if (inCurrentScope) {
         logger->reportError("Duplicate symbol declaration: " 
                 + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr());
         ptr_ret->returnCode = false;
@@ -283,24 +294,41 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         /* SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo); */
         /* SymInfo_array *sym_arr = new SymInfo_array(dynamic_cast<const SymInfo_array&>(syminfo)); */
 
-        SymInfo_array *sym_arr = new SymInfo_array(*syminfo);
+        auto sym_arr = new SymInfo_array(*syminfo);
         // TODO delete syminfo ?
-       
+        ptr_ret->syminfo = sym_arr;
         // print - working
         /* std::cout << "printing syminfo_arr: " << sym_arr->tok->getTokenStr() << std::endl; */
 
         ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr);
         ptr_ret->ptr_bound = parse_bound();
+
         ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr);
 
+        int size = -1;
+        try {
+            size = std::stoi(ptr_ret->ptr_bound->ptr_number->ptr_tk_number->getTokenStr());
+        } catch (const std::exception &e) {
+            std::cout << "can't convert size" << std::endl;
+            logger->reportError("can't convert size");
+            ptr_ret->returnCode = false;
+        }
+
+        sym_arr->size = size;
+
+        if (sym_arr->size <= 0) {
+            logger->reportError("size should be a positive integer");
+            ptr_ret->returnCode = false;
+        }
+
+        std::cout << "size is: " << size << std::endl;
         /* ptr_ret->syminfo = sym_arr; */
     }
 
     // add type checking
  
-
-
-
+    // TODO add syminfo to symbol table
+    updateSymbolTable(ptr_ret->ptr_tk_variable);
 
     return ptr_ret;
 }
@@ -311,9 +339,38 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
     auto ptr_ret = new nt_retType_procedure_header();
 
     ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW, nullptr);
-    ptr_ret->ptr_identifier = parse_identifier(nullptr);
+
+    bool inCurrentScope;
+    ptr_ret->ptr_identifier = parse_identifier(&inCurrentScope);
+    if (!ptr_ret->ptr_identifier->returnCode) {
+        logger->reportError("Identifier parse error in procedure header");
+        ptr_ret->returnCode = false;
+    }
+
+    // auto syminfo_proc = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str);
+    auto syminfo_proc = new SymInfo_proc(ptr_ret->ptr_identifier->ptr_tk_str);
+
+    // check duplicate
+    if (inCurrentScope) {
+        logger->reportError("Duplicate procedure name symbol declaration: "
+                            + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr());
+        ptr_ret->returnCode = false;
+
+        return ptr_ret;
+    }
+
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
+
+    if (ptr_ret->ptr_type_mark->ptr_tk_integer) {
+        syminfo_proc->symdtype = symDatatype::INT_DTYPE;
+    } else if (ptr_ret->ptr_type_mark->ptr_tk_float) {
+        syminfo_proc->symdtype = symDatatype::FLOAT_DTYPE;
+    } else if (ptr_ret->ptr_type_mark->ptr_tk_string) {
+        syminfo_proc->symdtype = symDatatype::STR_DTYPE;
+    } else if (ptr_ret->ptr_type_mark->ptr_tk_bool) {
+        syminfo_proc->symdtype = symDatatype::BOOL_DTYPE;
+    }
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr);
 
@@ -321,6 +378,8 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
 
     if (lookahead->getTokenType() != tokenType::R_PAREN) {
         ptr_ret->ptr_parameter_list = parse_parameter_list();
+
+        if (!ptr_ret->ptr_parameter_list->returnCode) ptr_ret->returnCode = false;
     }
 
     ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr);
@@ -456,13 +515,20 @@ nt_retType_number* Parser::parse_number() {
 
     auto lookahead = lexer->getlookahead();
 
-    if (lookahead->getTokenType() == tokenType::INTEGER)
+    if (lookahead->getTokenType() == tokenType::INTEGER) {
         ptr_ret->ptr_tk_number = match(tokenType::INTEGER, nullptr);
-    else if (lookahead->getTokenType() == tokenType::FLOAT)
+    } else if (lookahead->getTokenType() == tokenType::FLOAT) {
         ptr_ret->ptr_tk_number = match(tokenType::FLOAT, nullptr);
-    else
-        throw std::runtime_error("can't parse number, actual string: " +
-                lookahead->getTokenStr());
+    } else {
+        std::cout << "lookahead type: " << lookahead->getTokenTypeStr() << std::endl;
+        logger->reportError("can't parse number, actual string: " + lookahead->getTokenStr());
+
+        ptr_ret->ptr_tk_number = lexer->scan(nullptr);
+        ptr_ret->returnCode = false;
+
+        /* throw std::runtime_error("can't parse number, actual string: " + */
+        /*         lookahead->getTokenStr()); */
+    }
 
     return ptr_ret;
 }
@@ -907,4 +973,6 @@ nt_retType_string* Parser::parse_string() {
 
     return ptr_ret;
 }
+
+
 

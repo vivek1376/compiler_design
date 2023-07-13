@@ -45,10 +45,13 @@ class LexicalAnalyzer {
         Token* getlookahead();
         int getPos();
         void setinFilepos(int pos);
+
     private:
         static LexicalAnalyzer* instance_;
         inFile* srcFile;
         LexicalAnalyzer() = default;  // TODO or delete ?
+        // NOTE see https://stackoverflow.com/questions/3871429/class-members-that-are-objects-pointers-or-not-c
+        // whether member variable should be pointer or value
         SymbolTable symTab;
 };
 
