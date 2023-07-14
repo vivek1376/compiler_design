@@ -299,7 +299,6 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         auto sym_arr = new SymInfo_array(*syminfo);
 
         // TODO delete syminfo ?
-        ptr_ret->syminfo = sym_arr;
 
         // print - working
         /* std::cout << "printing syminfo_arr: " << sym_arr->tok->getTokenStr() << std::endl; */
@@ -326,6 +325,8 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         }
 
         std::cout << "size is: " << size << std::endl;
+
+        ptr_ret->syminfo = sym_arr;
         /* ptr_ret->syminfo = sym_arr; */
     }
 
@@ -362,7 +363,7 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     }
 
     *syminfo_proc = *ptr_ret->ptr_identifier->syminfo;
-    delete ptr_ret->ptr_identifier->syminfo;
+    /* delete ptr_ret->ptr_identifier->syminfo; */
 
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
@@ -437,10 +438,8 @@ nt_retType_identifier* Parser::parse_identifier(bool *inCurrentScope) {
 
     nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
-    SymInfo *syminfo_identifier;
-    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, &syminfo_identifier);
-
-    ptr_ret->syminfo = syminfo_identifier;
+    /* ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, &syminfo_identifier); */
+    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, &ptr_ret->syminfo);
 
     return ptr_ret;
     /* Token* tk = lexer->scan(); */

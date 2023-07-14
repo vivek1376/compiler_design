@@ -36,7 +36,9 @@ Token* SymInfo::getToken() {
 
 void SymInfo::print() {}
 
-SymInfo::~SymInfo() noexcept {}
+SymInfo::~SymInfo() noexcept{
+    delete tok;  // TODO check
+}
 
 
 SymInfo_array::SymInfo_array(const SymInfo& that) : SymInfo(that) {

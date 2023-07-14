@@ -35,7 +35,7 @@ class SymInfo {
 
 
         virtual void print();  // TODO for dynamic_cast ?
-        virtual ~SymInfo();  // see https://stackoverflow.com/a/4227337/9894266
+        virtual ~SymInfo() noexcept;  // see https://stackoverflow.com/a/4227337/9894266
 };
 
 
