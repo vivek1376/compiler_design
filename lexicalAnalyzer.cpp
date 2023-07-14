@@ -23,7 +23,7 @@ void LexicalAnalyzer::runLexer() {
 
     while (srcFile->isgood()) {
         std::cerr << "scanning..." << std::endl;
-        auto tok = scan(nullptr);
+        auto tok = scan(nullptr, nullptr);
         tok->printToken();
     }
 
@@ -268,7 +268,7 @@ bool LexicalAnalyzer::isWhitespace() {
 }
 
 
-Token* LexicalAnalyzer::scan(bool *inCurrentScope) {
+Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo) {
 
     /* SymbolTable symTab; */
 
@@ -290,7 +290,7 @@ Token* LexicalAnalyzer::scan(bool *inCurrentScope) {
     }
 
     // TODO check isgood() ?
-    return buildToken(inCurrentScope);
+    return buildToken(inCurrentScope, ptr_syminfo);
 }
 
 
@@ -301,7 +301,7 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
 }
 
 /* Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) { */
-Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope) {
+Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_syminfo) {
 
     prerr("bt");
 
@@ -514,7 +514,7 @@ int LexicalAnalyzer::getPos() {
 Token* LexicalAnalyzer::getlookahead() {
     int pos = getPos();
 
-    Token *tk = scan(nullptr);
+    Token *tk = scan(nullptr, nullptr);
 
     // resetting ?
     setinFilepos(pos);

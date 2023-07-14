@@ -61,7 +61,7 @@ class Parser {
 
 
         /* Token* getNextToken(); */
-        Token* match(tokenType tt, bool*);
+        Token* match(tokenType tt, bool*, SymInfo**);
 
         // parser fns
 
