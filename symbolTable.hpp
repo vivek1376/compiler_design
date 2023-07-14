@@ -28,10 +28,14 @@ class SymInfo {
         // TODO explain purpose
         SymInfo() = default;  // TODO change ?
         explicit SymInfo(Token*);
+        explicit SymInfo(Token*, symType, symDatatype);
         Token* getToken();
         SymInfo(const SymInfo& that);
         // TODO define copy assignment too?
 
+
+        virtual void print();  // TODO for dynamic_cast ?
+        virtual ~SymInfo();  // see https://stackoverflow.com/a/4227337/9894266
 };
 
 
@@ -49,9 +53,10 @@ class SymInfo_proc : public SymInfo {
     public:
 
         std::vector<SymInfo*> list_param;
-
-        explicit SymInfo_proc(Token*);
-
+        explicit  SymInfo_proc();
+        explicit SymInfo_proc(Token*, symDatatype);
+        SymInfo_proc& operator=(const SymInfo&);
+        void print() override;
 };
 
 /* class Tokeninfo { */
@@ -73,7 +78,7 @@ class SymbolTable {
         /* std::unordered_map<std::string, Token*> map_symTab; */
 
     public:
-        Token* lookupTokenString(std::string, bool*);
+        Token* lookupTokenString(std::string, bool*, SymInfo**);
 
         void printTable();
         void addTable();

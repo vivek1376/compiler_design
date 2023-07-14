@@ -100,7 +100,7 @@ void LexicalAnalyzer::initSymbolTable() {
     std::cout << "IS1" << std::endl;
     for (auto p: vec_rwToktype) {
         std::cout << "calling lookupTokenString() for RWs" << std::endl;
-        tok = symTab.lookupTokenString(p.first, nullptr);
+        tok = symTab.lookupTokenString(p.first, nullptr, nullptr);
         std::cout << "IS2" << std::endl;
         tok->setTokenType(p.second);
 
@@ -418,7 +418,7 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
             // identifier
             /* std::cout << "going to lookup..\n"; */
             /* std::cout << "buildToken() - calling lookupTokenStr" << std::endl; */
-            return symTab.lookupTokenString(tokenStr, ptr_inCurrentScope);
+            return symTab.lookupTokenString(tokenStr, ptr_inCurrentScope, ptr_syminfo);
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
             /* tok->setTokenType(tokenType::PROGRAM_RW); */

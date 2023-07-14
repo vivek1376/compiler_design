@@ -220,6 +220,8 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
     
     auto ptr_ret = new nt_retType_procedure_declaration();
 
+    ptr_ret->syminfo = new SymInfo_proc();
+    /* ptr_ret->ptr_procedure_header = parse_procedure_header(dynamic_cast<SymInfo_proc*>(ptr_ret->syminfo)); */
     ptr_ret->ptr_procedure_header = parse_procedure_header();
     if (!ptr_ret->ptr_procedure_header->returnCode) ptr_ret->returnCode = false;
 
@@ -234,8 +236,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     auto ptr_ret = new nt_retType_variable_declaration();
 
-    SymInfo* ptr_syminfo;
-    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr, &ptr_syminfo);  // TODO add ret value check for invalid token ?
+    ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr, nullptr);  // TODO add ret value check for invalid token ?
     // check
     if (ptr_ret->ptr_tk_variable->getTokenType() == tokenType::INVALID) {
         logger->reportError("VARIABLE_RW not found!");
@@ -253,7 +254,8 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         ptr_ret->returnCode = false;
     }
 
-    auto syminfo = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str);
+    /* auto syminfo = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str); */
+    auto syminfo = ptr_ret->ptr_identifier->syminfo;
     ptr_ret->syminfo = syminfo;
 
     // check duplicate
@@ -293,6 +295,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         /* SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo); */
         /* SymInfo_array *sym_arr = new SymInfo_array(dynamic_cast<const SymInfo_array&>(syminfo)); */
 
+        // create new syminfo_arr; we can't simply cast syminfo returned by parse_identifier
         auto sym_arr = new SymInfo_array(*syminfo);
         // TODO delete syminfo ?
         ptr_ret->syminfo = sym_arr;
@@ -333,6 +336,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 }
 
 
+/* nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminfo_proc) { */
 nt_retType_procedure_header* Parser::parse_procedure_header() {
 
     auto ptr_ret = new nt_retType_procedure_header();
@@ -346,9 +350,6 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
         ptr_ret->returnCode = false;
     }
 
-    // auto syminfo_proc = new SymInfo(ptr_ret->ptr_identifier->ptr_tk_str);
-    auto syminfo_proc = new SymInfo_proc(ptr_ret->ptr_identifier->ptr_tk_str);
-
     // check duplicate
     if (inCurrentScope) {
         logger->reportError("Duplicate procedure name symbol declaration: "
@@ -358,17 +359,20 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
         return ptr_ret;
     }
 
+    /* *syminfo_proc = *ptr_ret->ptr_identifier->syminfo; */
+    /* delete ptr_ret->ptr_identifier->syminfo; */
+
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
 
     if (ptr_ret->ptr_type_mark->ptr_tk_integer) {
-        syminfo_proc->symdtype = symDatatype::INT_DTYPE;
+        /* syminfo_proc->symdtype = symDatatype::INT_DTYPE; */
     } else if (ptr_ret->ptr_type_mark->ptr_tk_float) {
-        syminfo_proc->symdtype = symDatatype::FLOAT_DTYPE;
+        /* syminfo_proc->symdtype = symDatatype::FLOAT_DTYPE; */
     } else if (ptr_ret->ptr_type_mark->ptr_tk_string) {
-        syminfo_proc->symdtype = symDatatype::STR_DTYPE;
+        /* syminfo_proc->symdtype = symDatatype::STR_DTYPE; */
     } else if (ptr_ret->ptr_type_mark->ptr_tk_bool) {
-        syminfo_proc->symdtype = symDatatype::BOOL_DTYPE;
+        /* syminfo_proc->symdtype = symDatatype::BOOL_DTYPE; */
     }
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
@@ -381,6 +385,7 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
         if (!ptr_ret->ptr_parameter_list->returnCode) ptr_ret->returnCode = false;
     }
 
+    /* ptr_ret->syminfo = new SymInfo_proc( */
     ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
 
     return ptr_ret;
@@ -430,7 +435,10 @@ nt_retType_identifier* Parser::parse_identifier(bool *inCurrentScope) {
 
     nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
-    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, nullptr);
+    SymInfo *syminfo_identifier;
+    ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, &syminfo_identifier);
+
+    ptr_ret->syminfo = syminfo_identifier;
 
     return ptr_ret;
     /* Token* tk = lexer->scan(); */

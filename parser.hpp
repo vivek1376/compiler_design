@@ -73,6 +73,7 @@ class Parser {
         nt_retType_statement* parse_statement();
         nt_retType_procedure_declaration* parse_procedure_declaration();
         nt_retType_variable_declaration* parse_variable_declaration();
+        /* nt_retType_procedure_header* parse_procedure_header(SymInfo_proc*); */
         nt_retType_procedure_header* parse_procedure_header();
         nt_retType_procedure_body* parse_procedure_body();
         nt_retType_identifier* parse_identifier(bool*);
