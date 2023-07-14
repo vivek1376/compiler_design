@@ -20,7 +20,7 @@ SymInfo::SymInfo(Token* token, symType symtype, symDatatype symdtype) {
 SymInfo::SymInfo(const SymInfo& that) {
     /* tok = new Token(); */
     std::cout << "syminfo copy constructor called" << std::endl;
-    std::cout << std::hex << that.tok << std::endl;
+    std::cout << "that.tok addr: " << std::hex << that.tok << std::endl;
     tok = new Token(*that.tok);
     std::cout << "after Token copy" << std::endl;
 

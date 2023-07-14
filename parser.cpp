@@ -221,8 +221,8 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
     auto ptr_ret = new nt_retType_procedure_declaration();
 
     ptr_ret->syminfo = new SymInfo_proc();
-    /* ptr_ret->ptr_procedure_header = parse_procedure_header(dynamic_cast<SymInfo_proc*>(ptr_ret->syminfo)); */
-    ptr_ret->ptr_procedure_header = parse_procedure_header();
+    ptr_ret->ptr_procedure_header = parse_procedure_header(dynamic_cast<SymInfo_proc*>(ptr_ret->syminfo));
+    /* ptr_ret->ptr_procedure_header = parse_procedure_header(); */
     if (!ptr_ret->ptr_procedure_header->returnCode) ptr_ret->returnCode = false;
 
     ptr_ret->ptr_procedure_body = parse_procedure_body();
@@ -297,8 +297,10 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
         // create new syminfo_arr; we can't simply cast syminfo returned by parse_identifier
         auto sym_arr = new SymInfo_array(*syminfo);
+
         // TODO delete syminfo ?
         ptr_ret->syminfo = sym_arr;
+
         // print - working
         /* std::cout << "printing syminfo_arr: " << sym_arr->tok->getTokenStr() << std::endl; */
 
@@ -336,8 +338,8 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 }
 
 
-/* nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminfo_proc) { */
-nt_retType_procedure_header* Parser::parse_procedure_header() {
+nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminfo_proc) {
+/* nt_retType_procedure_header* Parser::parse_procedure_header() { */
 
     auto ptr_ret = new nt_retType_procedure_header();
 
@@ -359,20 +361,20 @@ nt_retType_procedure_header* Parser::parse_procedure_header() {
         return ptr_ret;
     }
 
-    /* *syminfo_proc = *ptr_ret->ptr_identifier->syminfo; */
-    /* delete ptr_ret->ptr_identifier->syminfo; */
+    *syminfo_proc = *ptr_ret->ptr_identifier->syminfo;
+    delete ptr_ret->ptr_identifier->syminfo;
 
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
 
     if (ptr_ret->ptr_type_mark->ptr_tk_integer) {
-        /* syminfo_proc->symdtype = symDatatype::INT_DTYPE; */
+        syminfo_proc->symdtype = symDatatype::INT_DTYPE;
     } else if (ptr_ret->ptr_type_mark->ptr_tk_float) {
-        /* syminfo_proc->symdtype = symDatatype::FLOAT_DTYPE; */
+        syminfo_proc->symdtype = symDatatype::FLOAT_DTYPE;
     } else if (ptr_ret->ptr_type_mark->ptr_tk_string) {
-        /* syminfo_proc->symdtype = symDatatype::STR_DTYPE; */
+        syminfo_proc->symdtype = symDatatype::STR_DTYPE;
     } else if (ptr_ret->ptr_type_mark->ptr_tk_bool) {
-        /* syminfo_proc->symdtype = symDatatype::BOOL_DTYPE; */
+        syminfo_proc->symdtype = symDatatype::BOOL_DTYPE;
     }
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
