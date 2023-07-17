@@ -241,6 +241,9 @@ class nt_retType_parameter_list : public nt_retType {
 
         nt_retType_parameter* ptr_parameter;
         Token* ptr_tk_comma;
+        // pointer is being zero-initialized probably;
+        // see https://en.cppreference.com/w/cpp/language/zero_initialization
+        // https://stackoverflow.com/a/15212351/9894266
         nt_retType_parameter_list* ptr_parameter_list;
 };
 

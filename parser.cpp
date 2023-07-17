@@ -243,7 +243,6 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         ptr_ret->returnCode = false;
     }
 
-
     bool inCurrentScope;
     
     ptr_ret->ptr_identifier = parse_identifier(&inCurrentScope);
@@ -362,7 +361,7 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
         return ptr_ret;
     }
 
-    *syminfo_proc = *ptr_ret->ptr_identifier->syminfo;
+    *syminfo_proc = *ptr_ret->ptr_identifier->syminfo;  // TODO why not just assign pointer?
     /* delete ptr_ret->ptr_identifier->syminfo; */
 
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
@@ -386,9 +385,24 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
         ptr_ret->ptr_parameter_list = parse_parameter_list();
 
         if (!ptr_ret->ptr_parameter_list->returnCode) ptr_ret->returnCode = false;
+       
+        // now, build tree? for parameters?
+        nt_retType_parameter *param;
+        nt_retType_parameter_list *paramList = ptr_ret->ptr_parameter_list;
+
+        std::cout << "paramList: " << paramList << std::endl;
+        // turn it into vector of syminfo's
+        while (paramList) {
+            /* ptr_ret->list_param.push_back( */
+            syminfo_proc->list_param.push_back(
+                    paramList->ptr_parameter->ptr_variable_declaration->syminfo);
+
+            std::cout << "param is: " << syminfo_proc->list_param.back()->getToken()->getTokenStr() << std::endl;
+            paramList = paramList->ptr_parameter_list;
+        }
+
     }
 
-    /* ptr_ret->syminfo = new SymInfo_proc( */
     ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
 
     return ptr_ret;
@@ -439,6 +453,7 @@ nt_retType_identifier* Parser::parse_identifier(bool *inCurrentScope) {
     nt_retType_identifier* ptr_ret = new nt_retType_identifier();
 
     /* ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, &syminfo_identifier); */
+    // TODO allocate SymINfo here and pass to match ?
     ptr_ret->ptr_tk_str = match(tokenType::IDENTIFIER, inCurrentScope, &ptr_ret->syminfo);
 
     return ptr_ret;
