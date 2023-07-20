@@ -70,6 +70,12 @@ bool LexicalAnalyzer::ifStartBlockComment() {
     return true;
 }
 
+
+void LexicalAnalyzer::addSymbolTable() {
+    symTab.addTable();
+}
+
+
 void LexicalAnalyzer::initSymbolTable() {
 
     // TODO seeding as suggested in slides, why ??

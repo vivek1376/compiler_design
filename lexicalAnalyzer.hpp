@@ -33,6 +33,7 @@ class LexicalAnalyzer {
         bool isComment();
         Token* buildToken(bool*, SymInfo**);
         void initSymbolTable();
+        void addSymbolTable();
         Token* scan(bool*, SymInfo**);
         bool ifThisChar(char ch);
         void runLexer();
