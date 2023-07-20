@@ -220,13 +220,16 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
     
     auto ptr_ret = new nt_retType_procedure_declaration();
 
-    ptr_ret->syminfo = new SymInfo_proc();
+    // TODO create new symbol table (add to stack) here?
+
+    ptr_ret->syminfo = new SymInfo_proc();  // procedure_decl contains both proc header and body 
+                                            // so, allocate syminfo_proc class here
     ptr_ret->ptr_procedure_header = parse_procedure_header(dynamic_cast<SymInfo_proc*>(ptr_ret->syminfo));
-    /* ptr_ret->ptr_procedure_header = parse_procedure_header(); */
-    if (!ptr_ret->ptr_procedure_header->returnCode) ptr_ret->returnCode = false;
+    /* if (!ptr_ret->ptr_procedure_header->returnCode) ptr_ret->returnCode = false; */
+    ptr_ret->returnCode &= ptr_ret->ptr_procedure_header->returnCode;
 
     ptr_ret->ptr_procedure_body = parse_procedure_body();
-    if (!ptr_ret->ptr_procedure_body->returnCode) ptr_ret->returnCode =  false;
+    if (!ptr_ret->ptr_procedure_body->returnCode) ptr_ret->returnCode = false;
 
     return ptr_ret;
 }
@@ -384,13 +387,15 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     if (lookahead->getTokenType() != tokenType::R_PAREN) {
         ptr_ret->ptr_parameter_list = parse_parameter_list();
 
+        // redundant?
         if (!ptr_ret->ptr_parameter_list->returnCode) ptr_ret->returnCode = false;
        
         // now, build tree? for parameters?
         nt_retType_parameter *param;
         nt_retType_parameter_list *paramList = ptr_ret->ptr_parameter_list;
 
-        std::cout << "paramList: " << paramList << std::endl;
+        /* std::cout << "paramList: " << paramList << std::endl; */
+       
         // turn it into vector of syminfo's
         while (paramList) {
             /* ptr_ret->list_param.push_back( */
@@ -398,9 +403,12 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
                     paramList->ptr_parameter->ptr_variable_declaration->syminfo);
 
             std::cout << "param is: " << syminfo_proc->list_param.back()->getToken()->getTokenStr() << std::endl;
+            
+            /* if (!paramList->returnCode) ptr_ret->returnCode = false; */
+            ptr_ret->returnCode &= paramList->returnCode;
+
             paramList = paramList->ptr_parameter_list;
         }
-
     }
 
     ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
@@ -495,6 +503,12 @@ nt_retType_type_mark* Parser::parse_type_mark() {
 nt_retType_parameter_list* Parser::parse_parameter_list() {
 
     auto ptr_ret = new nt_retType_parameter_list();
+
+    // both poiner values print zero; 
+    // this explains? >> https://en.cppreference.com/w/cpp/language/zero_initialization
+    /* std::cout << "in parse_parameter_list(): class member pointer values" << std::endl; */
+    /* std::cout << "token: " << ptr_ret->ptr_tk_comma << std::endl; */
+    /* std::cout << "parameter_list: " << ptr_ret->ptr_parameter_list << std::endl; */
 
     ptr_ret->ptr_parameter = parse_parameter();
 
