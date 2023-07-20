@@ -217,7 +217,8 @@ nt_retType_statement* Parser::parse_statement() {
 
 
 nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
-    
+
+    LEXER->addSymbolTable();
     auto ptr_ret = new nt_retType_procedure_declaration();
 
     // TODO create new symbol table (add to stack) here?

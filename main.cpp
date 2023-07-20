@@ -17,7 +17,7 @@ int main() {
     LEXER->setinFile(new inFile(filename));
  
     std::cout << "h2" << std::endl;
-    LEXER->initSymbolTable();
+    LEXER->addSymbolTable();
     /* LEXER->getSymbolTable().printTable(); */
     /* throw std::runtime_error("testing exception!"); */
 

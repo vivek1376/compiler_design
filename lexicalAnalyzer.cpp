@@ -72,14 +72,9 @@ bool LexicalAnalyzer::ifStartBlockComment() {
 
 
 void LexicalAnalyzer::addSymbolTable() {
+
     symTab.addTable();
-}
 
-
-void LexicalAnalyzer::initSymbolTable() {
-
-    // TODO seeding as suggested in slides, why ??
-    symTab.addTable();
     Token *tok;
 
     std::vector<std::pair<std::string, tokenType>> vec_rwToktype {
@@ -103,6 +98,7 @@ void LexicalAnalyzer::initSymbolTable() {
         {"true", tokenType::TRUE_RW},
         {"false", tokenType::FALSE_RW}
     };
+
     std::cout << "IS1" << std::endl;
     for (auto p: vec_rwToktype) {
         std::cout << "calling lookupTokenString() for RWs" << std::endl;
@@ -115,8 +111,9 @@ void LexicalAnalyzer::initSymbolTable() {
         /* tok->setTokenType(tokenType:: */
     }
 
-    /* std::cout << "done init..\n"; */
+
 }
+
 
 bool LexicalAnalyzer::ifEndBlockComment() {
 
