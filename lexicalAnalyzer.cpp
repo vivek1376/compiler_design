@@ -110,8 +110,6 @@ void LexicalAnalyzer::addSymbolTable() {
         /* tok->printTokenString(); */
         /* tok->setTokenType(tokenType:: */
     }
-
-
 }
 
 
@@ -252,20 +250,20 @@ void LexicalAnalyzer::removeWhitespace() {
 }
 
 bool LexicalAnalyzer::isWhitespace() {
-    prerr("iw");
-    std::cerr << srcFile->isgood() << std::endl;
+    /* prerr("LEXER::isWhitespace"); */
+    /* std::cerr << srcFile->isgood() << std::endl; */
 
     char ch = srcFile->getChar();
     srcFile->ungetCh();
 
-    std::cerr << "[" << ch << "]" << std::endl;
+    /* std::cerr << "[" << ch << "]" << std::endl; */
 
     // TODO just return directly
     if (std::isspace(ch)) {
-        prerr("yes_space");
+        /* prerr("yes_space"); */
         return true;
     } else {
-        prerr("no_space");
+        /* prerr("no_space"); */
         return false;
     }
 }
@@ -278,9 +276,7 @@ Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo) {
     /* std::cout << "filepos: " << srcFile->getPos() << std::endl; */
 
     while (srcFile->isgood()) {  // TODO or just true
-        prerr("sc1");
-
-        std::cerr << "h1" << std::endl;
+        prerr("LEXER::scan - looping before buildToken");
 
         if (isWhitespace()) removeWhitespace();
 
@@ -297,8 +293,6 @@ Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo) {
 }
 
 
-
-
 SymbolTable& LexicalAnalyzer::getSymbolTable() {
     return symTab;
 }
@@ -306,7 +300,7 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
 /* Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) { */
 Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_syminfo) {
 
-    prerr("bt");
+    prerr("LEXER::buildToken");
 
     char ch = srcFile->getChar(), nextCh;
     /* std::cerr << "ch: " << ch; */

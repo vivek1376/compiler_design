@@ -4,5 +4,5 @@
 #include "helperFunctions.hpp"
 
 void prerr(std::string st) {
-    std::cerr << st << std::endl;
+    std::cerr << st << std::endl << std::flush;
 }

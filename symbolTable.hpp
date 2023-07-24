@@ -9,7 +9,7 @@
 #include "token.hpp"
 
 enum symType {VAR_SYM, PROC_SYM, CONST_SYM, OTHERS_SYM};
-enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE};
+enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE, NOT_FOUND};
 
 class SymInfo {
     protected:
@@ -81,6 +81,7 @@ class SymbolTable {
         Token* lookupTokenString(std::string, bool*, SymInfo**);
 
         void printTable();
+        symDatatype getSymDtype(std::string);
         void addTable();
         void printAllKeys();
         /* SymbolTable(); */

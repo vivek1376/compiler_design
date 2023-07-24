@@ -74,7 +74,7 @@ void SymbolTable::addTable() {
 /* Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) { */
 Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentScope, SymInfo** p_syminfo) {
     // lookup in current scope, insert if not present in current scope
-    // NOTE symbol table is only for identifiers
+    // NOTE symbol table only stores identifiers
 
     int numScopes = vec_symtab.size();
     // int scopeDepth = 0;
@@ -132,7 +132,25 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
     }
 
     if (p_syminfo) *p_syminfo = vec_symtab.back().find(tokenStr)->second;
+
     return vec_symtab.back().find(tokenStr)->second->getToken();
+}
+
+
+symDatatype SymbolTable::getSymDtype(std::string tokenStr) {
+
+    symDatatype ret_symdtype = symDatatype::NOT_FOUND;
+
+    for (auto it = vec_symtab.rbegin(); it != vec_symtab.rend(); ++it) {
+        if (it->find(tokenStr) != it->end()) {
+            /* return std::make_pair(scopeDepth, it->find(tokenStr)->second); */
+            return it->find(tokenStr)->second->symdtype;
+        }
+
+        /* scopeDepth++; */
+    }
+
+    return ret_symdtype;
 }
 
 

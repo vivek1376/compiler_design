@@ -53,7 +53,7 @@ Token* Parser::match(tokenType tt, bool* inCurrentScope, SymInfo** ptr_syminfo) 
     // match token and consume (scan() will advance file pointer)
     Token *tok = lexer->scan(inCurrentScope, ptr_syminfo);
 
-    std::cout << "match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
+    std::cout << "💎 match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
         + tok->getTokenTypeStr() + "\n";
 
     /* if (nextTok->getTokenType() == tk->getTokenType() && */
@@ -215,7 +215,6 @@ nt_retType_statement* Parser::parse_statement() {
 }
 
 
-
 nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
 
     LEXER->addSymbolTable();
@@ -225,6 +224,7 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
 
     ptr_ret->syminfo = new SymInfo_proc();  // procedure_decl contains both proc header and body 
                                             // so, allocate syminfo_proc class here
+                                            // TODO OR, just use assign to: ptr_ret->syminfo = ...
     ptr_ret->ptr_procedure_header = parse_procedure_header(dynamic_cast<SymInfo_proc*>(ptr_ret->syminfo));
     /* if (!ptr_ret->ptr_procedure_header->returnCode) ptr_ret->returnCode = false; */
     ptr_ret->returnCode &= ptr_ret->ptr_procedure_header->returnCode;
@@ -270,9 +270,7 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         return ptr_ret;
     }
 
-
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
-
 
     ptr_ret->ptr_type_mark = parse_type_mark();
 
@@ -366,7 +364,9 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     }
 
     *syminfo_proc = *ptr_ret->ptr_identifier->syminfo;  // TODO why not just assign pointer?
-    /* delete ptr_ret->ptr_identifier->syminfo; */
+    delete ptr_ret->ptr_identifier->syminfo;  // TODO deleting causes problems ?
+                                                 // yes, token strings printed in "lookahead is: " and "match()" changes
+                                                 // deleting will delete entry in symbol table
 
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
     ptr_ret->ptr_type_mark = parse_type_mark();
@@ -424,11 +424,15 @@ nt_retType_procedure_body* Parser::parse_procedure_body() {
 
     auto lookahead = lexer->getlookahead();
 
+    /* std::cout << "in parse_proc_body: " << std::boolalpha << ptr_ret->returnCode << std::endl;  // ok: prints true */
     while (lookahead->getTokenType() != tokenType::BEGIN_RW) {
 
         auto p_first_decl = parse_declaration();
+        ptr_ret->returnCode &= p_first_decl->returnCode;
+
         auto p_second_semicolon = match(tokenType::SEMICOLON, nullptr, nullptr);
 
+        // TODO no need to store semicolon in the vector
         ptr_ret->vec_declaration_tkcolon.push_back(std::make_pair(p_first_decl,
                     p_second_semicolon));
 
@@ -594,7 +598,10 @@ nt_retType_if_statement* Parser::parse_if_statement() {
 
     ptr_ret->ptr_tk_if = match(tokenType::IF_RW, nullptr, nullptr);
     match(tokenType::L_PAREN, nullptr, nullptr);  // NOTE ignoring return pointer
+                                                 
     ptr_ret->ptr_expression = parse_expression();
+    ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
+
     match(tokenType::R_PAREN, nullptr, nullptr);
 
     ptr_ret->ptr_tk_then = match(tokenType::THEN_RW, nullptr, nullptr);
@@ -669,7 +676,8 @@ nt_retType_loop_statement* Parser::parse_loop_statement() {
 
 
 nt_retType_return_statement* Parser::parse_return_statement() {
-    
+
+    prerr("parse_return_statement()");
     auto ptr_ret = new nt_retType_return_statement();
 
     ptr_ret->ptr_tk_return = match(tokenType::RETURN_RW, nullptr, nullptr);
@@ -722,7 +730,9 @@ nt_retType_destination* Parser::parse_destination() {
 
 nt_retType_expression* Parser::parse_expression() {
 
+    prerr("parse_expression()");
     nt_retType_expression* ptr_ret = new nt_retType_expression();
+    ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
 
@@ -731,8 +741,11 @@ nt_retType_expression* Parser::parse_expression() {
     }
 
     ptr_ret->ptr_arithOp = parse_arithOp();
+    ptr_ret->returnCode &= ptr_ret->ptr_arithOp->returnCode;
+
     ptr_ret->ptr_expression_ = parse_expression_();
 
+    prerr("done parse_expression");
     return ptr_ret;
 }
 
@@ -744,6 +757,7 @@ nt_retType_arithOp* Parser::parse_arithOp() {
     ptr_ret->ptr_relation = parse_relation();
     ptr_ret->ptr_arithOp_ = parse_arithOp_();
 
+    prerr("done parse_arithOp");
     return ptr_ret;
 }
 
@@ -778,6 +792,8 @@ nt_retType_relation* Parser::parse_relation() {
     ptr_ret->ptr_term = parse_term();
     ptr_ret->ptr_relation_ = parse_relation_();
 
+    prerr("done parse_relation");
+
     return ptr_ret;
 }
 
@@ -810,56 +826,99 @@ nt_retType_term* Parser::parse_term() {
     nt_retType_term* ptr_ret = new nt_retType_term();
 
     ptr_ret->ptr_factor = parse_factor();
+    prerr("done parse_factor()");
     ptr_ret->ptr_term_ = parse_term_();
+    prerr("done parse_term_()");
 
     return ptr_ret;
 }
 
 
 nt_retType_factor* Parser::parse_factor() {
+
+    // TODO return data type from here?
+    prerr("parse_factor()");
     nt_retType_factor* ptr_ret = new nt_retType_factor();
 
+    ptr_ret->syminfo = new SymInfo();
+
     Token* lookahead = lexer->getlookahead();
-    std::cout << "lookahead is :" << lookahead->getTokenStr() << " type: " <<
+    std::cout << "🔔 lookahead is :" << lookahead->getTokenStr() << "\ttype: " <<
         lookahead->getTokenTypeStr() << std::endl;
 
-    if (lookahead->getTokenType() == tokenType::L_PAREN) {
+    if (lookahead->getTokenType() == tokenType::L_PAREN) {  // handle (expression)
         ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
         ptr_ret->ptr_expression = parse_expression();
+        
+        ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
+
+        /* std::cout << "in parse_factor(): syminfo: " << ptr_ret->syminfo << std::endl; */
+        prerr("post parse_expression()");
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_expression->syminfo->symdtype;
+        prerr("post assigning symdtype");
         ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
     } else if (lookahead->getTokenType() == tokenType::MINUS) {
         ptr_ret->ptr_tk_minus = match(tokenType::MINUS, nullptr, nullptr);
 
         lookahead = lexer->getlookahead();
 
-        if (lookahead->getTokenType() == tokenType::IDENTIFIER) {
+        if (lookahead->getTokenType() == tokenType::IDENTIFIER) {  // handle -name
             ptr_ret->ptr_name = parse_name();
-        } else if (lookahead->getTokenType() == tokenType::INTEGER ||
-                lookahead->getTokenType() == tokenType::FLOAT) {
-            ptr_ret->ptr_number = parse_number();
-        }
 
-    } else if (lookahead->getTokenType() == tokenType::INTEGER ||
-            lookahead->getTokenType() == tokenType::FLOAT) {
+            ptr_ret->returnCode &= ptr_ret->ptr_name->returnCode;
+            ptr_ret->syminfo->symdtype = ptr_ret->ptr_name->syminfo->symdtype;
+        } else if (lookahead->getTokenType() == tokenType::INTEGER) {  // handle -int
+            ptr_ret->ptr_number = parse_number();
+
+            ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
+            ptr_ret->syminfo->symdtype = symDatatype::INT_DTYPE;
+        } else if (lookahead->getTokenType() == tokenType::FLOAT) {  // handle -float
+            ptr_ret->ptr_number = parse_number();
+
+            ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
+            ptr_ret->syminfo->symdtype = symDatatype::FLOAT_DTYPE;
+        }
+    } else if (lookahead->getTokenType() == tokenType::INTEGER) {  // handle int
+        prerr("handling int");
         ptr_ret->ptr_number = parse_number();
-    } else if (lookahead->getTokenType() == tokenType::STRING) {
+
+        ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
+        ptr_ret->syminfo->symdtype = symDatatype::INT_DTYPE;
+        prerr("handled int");
+    } else if (lookahead->getTokenType() == tokenType::FLOAT) {  // handle float
+        ptr_ret->ptr_number = parse_number();
+
+        ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
+        ptr_ret->syminfo->symdtype = symDatatype::FLOAT_DTYPE;
+    } else if (lookahead->getTokenType() == tokenType::STRING) {  // handle string
         ptr_ret->ptr_string = parse_string();
-    } else if (lookahead->getTokenType() == tokenType::TRUE_RW) {
+
+        ptr_ret->returnCode &= ptr_ret->ptr_string->returnCode;
+        ptr_ret->syminfo->symdtype = symDatatype::STR_DTYPE;
+    } else if (lookahead->getTokenType() == tokenType::TRUE_RW) {  // handle true
         ptr_ret->ptr_tk_true = match(tokenType::TRUE_RW, nullptr, nullptr);
-    } else if (lookahead->getTokenType() == tokenType::FALSE_RW) {
+
+        ptr_ret->returnCode &= (ptr_ret->ptr_tk_true->getTokenType() != tokenType::INVALID);
+        ptr_ret->syminfo->symdtype = symDatatype::BOOL_DTYPE;
+    } else if (lookahead->getTokenType() == tokenType::FALSE_RW) {  // handle false
         ptr_ret->ptr_tk_false = match(tokenType::FALSE_RW, nullptr, nullptr);
+
+        ptr_ret->returnCode &= (ptr_ret->ptr_tk_true->getTokenType() != tokenType::INVALID);
+        ptr_ret->syminfo->symdtype = symDatatype::BOOL_DTYPE;
     } else {
         /* ptr_ret->ptr_nameOrProcedure = parse_nameOrProcedure( */
 
         /*
          * here, factor is one of these:
          *   <procedure_call>
-         *   <name>
+         *   <name> : <identifier> [[<expression>]]
          *
          * lookahead already points to identifier (common to both procedure_call and name)
          */
 
         nt_retType_identifier* ptr_identifier_nameOrProdecure = parse_identifier(nullptr);
+
+        ptr_ret->returnCode &= ptr_identifier_nameOrProdecure->returnCode;
 
         lookahead = lexer->getlookahead();
 
@@ -877,9 +936,13 @@ nt_retType_factor* Parser::parse_factor() {
         Token* tk_procedurecall_rparen = nullptr;
 
         if (lookahead->getTokenType() == tokenType::L_BRACKET) {
-            // handle variable[index]
+            
+            // handle [expression] for <name> : <identifier> [[<expression>]]
             tk_name_lbkt = match(tokenType::L_BRACKET, nullptr, nullptr);
-            ptr_name_expression = parse_expression();
+            ptr_name_expression = parse_expression();  // should this evaluate to number?
+
+            ptr_ret->returnCode &= ptr_name_expression->returnCode;
+
             tk_name_rbkt = match(tokenType::R_BRACKET, nullptr, nullptr);
 
             ptr_name = new nt_retType_name();
@@ -889,17 +952,23 @@ nt_retType_factor* Parser::parse_factor() {
             ptr_name->ptr_tk_rbkt = tk_name_rbkt;
 
             ptr_ret->ptr_name = ptr_name;
+
+            // now, get the symdtype of the identifier from the symbol table
+            ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
+                    ptr_name->ptr_identifier->ptr_tk_str->getTokenStr());
         } else if (lookahead->getTokenType() == tokenType::L_PAREN) {
-            // handle procedurename(arg_list)
-            tk_procedurecall_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
+
+            // handle (arg_list) in <procedure_call>
+            tk_procedurecall_lparen = match(tokenType::L_PAREN, nullptr, nullptr);  // handle (
 
             lookahead = lexer->getlookahead();
 
             if (lookahead->getTokenType() != tokenType::R_PAREN) {
                 ptr_procedurecall_arglist = parse_argument_list();
+                ptr_ret->returnCode &= ptr_procedurecall_arglist->returnCode;
             }
 
-            tk_procedurecall_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
+            tk_procedurecall_rparen = match(tokenType::R_PAREN, nullptr, nullptr);  // handle )
 
             ptr_procedurecall = new nt_retType_procedure_call();
             ptr_procedurecall->ptr_identifier = ptr_identifier_nameOrProdecure;
@@ -908,12 +977,30 @@ nt_retType_factor* Parser::parse_factor() {
             ptr_procedurecall->ptr_tk_rparen = tk_procedurecall_rparen;
 
             ptr_ret->ptr_procedure_call = ptr_procedurecall;
+ 
+            // now, get the symdtype of the identifier from the symbol table
+            ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
+                    ptr_procedurecall->ptr_identifier->ptr_tk_str->getTokenStr());
         } else {
-            // handle variable
+            // handle <identifier>
             ptr_name = new nt_retType_name();
             ptr_name->ptr_identifier = ptr_identifier_nameOrProdecure;
 
             ptr_ret->ptr_name = ptr_name;
+
+            symDatatype symd = LEXER->getSymbolTable().getSymDtype(
+                    ptr_name->ptr_identifier->ptr_tk_str->getTokenStr());
+            
+            /* symDatatype symdd = ptr_name->syminfo->symdtype; */
+            /* symDatatype symddd = symDatatype::NOT_FOUND ; */
+
+            /* std::cout << "ptr_ret->syminfo: " << ptr_ret->syminfo << std::endl; */
+            std::cout << "variable tokenString: " << ptr_name->ptr_identifier->ptr_tk_str->getTokenStr() << std::endl;
+            // now, get the symdtype of the identifier from the symbol table
+            ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
+                    ptr_name->ptr_identifier->ptr_tk_str->getTokenStr());
+
+            std::cout << "found symdtype\n";
         }
     }
 
