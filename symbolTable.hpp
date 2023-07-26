@@ -8,8 +8,11 @@
 #include <unordered_map>
 #include "token.hpp"
 
-enum symType {VAR_SYM, PROC_SYM, CONST_SYM, OTHERS_SYM};
-enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE, NOT_FOUND};
+enum symType {VAR_SYM, PROC_SYM, CONST_SYM, OTHERS_SYM, NA_SYM};
+
+// NA_DTYPE is for epsilon rule
+enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE, NOT_FOUND, 
+    INVALID_DTYPE};
 
 class SymInfo {
     protected:
@@ -26,7 +29,8 @@ class SymInfo {
         /* Tokeninfo(Token* tok, SymInfo *syminfo); */
 
         // TODO explain purpose
-        SymInfo() = default;  // TODO change ?
+        /* SymInfo() = default;  // TODO change ? */
+        SymInfo();  // TODO change ?
         explicit SymInfo(Token*);
         explicit SymInfo(Token*, symType, symDatatype);
         Token* getToken();

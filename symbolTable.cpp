@@ -7,6 +7,11 @@
 
 
 /* SymInfo::SymInfo(Token* token) : tok(token) {} */
+
+
+SymInfo::SymInfo() : tok{nullptr}, symtype{symType::NA_SYM}, symdtype{symDatatype::NA_DTYPE} {}
+
+
 SymInfo::SymInfo(Token* token) {
     tok = new Token(*token);
 }

@@ -101,7 +101,7 @@ class Parser {
         nt_retType_name* parse_name();
         nt_retType_string* parse_string();
 
-
+        symDatatype verifyCompatibility(std::string, symDatatype, symDatatype);
     private:
         // TODO make the copy constructor and assignment operators private ?
         static Parser* instance_;

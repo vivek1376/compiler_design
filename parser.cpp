@@ -734,18 +734,36 @@ nt_retType_expression* Parser::parse_expression() {
     nt_retType_expression* ptr_ret = new nt_retType_expression();
     ptr_ret->syminfo = new SymInfo();
 
+    /* std::cout << "new syminfo symdtype: " << ptr_ret->syminfo->symdtype << std::endl; */
+
     Token* lookahead = lexer->getlookahead();
+
+    std::string op_not = "";
 
     if (lookahead->getTokenType() == tokenType::NOT_RW) {
         ptr_ret->ptr_tk_not = match(tokenType::NOT_RW, nullptr, nullptr);
+
+        op_not = "not";
+        /* ptr_ret->syminfo->symdtype = symDatatype::NA_DTYPE; */
     }
 
     ptr_ret->ptr_arithOp = parse_arithOp();
     ptr_ret->returnCode &= ptr_ret->ptr_arithOp->returnCode;
 
     ptr_ret->ptr_expression_ = parse_expression_();
+    ptr_ret->returnCode &= ptr_ret->ptr_expression_->returnCode;
 
     prerr("done parse_expression");
+
+    ptr_ret->syminfo->symdtype = verifyCompatibility(op_not,
+            ptr_ret->ptr_arithOp->syminfo->symdtype,
+            ptr_ret->ptr_expression_->syminfo->symdtype);
+
+    if (ptr_ret->syminfo->symdtype == symDatatype::INVALID_DTYPE) {
+        ptr_ret->returnCode = false;
+        // TODO report error
+    }
+
     return ptr_ret;
 }
 
@@ -754,8 +772,28 @@ nt_retType_arithOp* Parser::parse_arithOp() {
 
     nt_retType_arithOp* ptr_ret = new nt_retType_arithOp();
 
+    ptr_ret->syminfo = new SymInfo();
+
     ptr_ret->ptr_relation = parse_relation();
+    ptr_ret->returnCode &= ptr_ret->ptr_relation->returnCode;
+
+    /* ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation->syminfo->symdtype; */
+
     ptr_ret->ptr_arithOp_ = parse_arithOp_();
+    ptr_ret->returnCode &= ptr_ret->ptr_arithOp_->returnCode;
+
+    /* ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype; */
+
+    if (ptr_ret->ptr_arithOp_->syminfo->symdtype == symDatatype::NA_DTYPE) {
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation->syminfo->symdtype;
+    } else if ((ptr_ret->ptr_arithOp_->syminfo->symdtype == symDatatype::INVALID_DTYPE) ||
+            (ptr_ret->ptr_relation->syminfo->symdtype == symDatatype::INVALID_DTYPE)) {
+        ptr_ret->syminfo->symdtype = symDatatype::INVALID_DTYPE;
+    } else if (ptr_ret->ptr_arithOp_->syminfo->symdtype == ptr_ret->ptr_relation->syminfo->symdtype) {
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype;
+    } else {
+        ptr_ret->syminfo->symdtype = symDatatype::INVALID_DTYPE;
+    }
 
     prerr("done parse_arithOp");
     return ptr_ret;
@@ -764,6 +802,8 @@ nt_retType_arithOp* Parser::parse_arithOp() {
 
 nt_retType_expression_* Parser::parse_expression_() {
     nt_retType_expression_* ptr_ret = new nt_retType_expression_();
+
+    ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
 
@@ -779,6 +819,8 @@ nt_retType_expression_* Parser::parse_expression_() {
         ptr_ret->ptr_tk_pipe = nullptr;
         ptr_ret->ptr_arithOp = nullptr;
         ptr_ret->ptr_expression_ = nullptr;
+
+        ptr_ret->syminfo->symdtype = symDatatype::NA_DTYPE;
     }
 
     return ptr_ret;
@@ -1092,7 +1134,7 @@ nt_retType_name* Parser::parse_name() {
 
 nt_retType_string* Parser::parse_string() {
 
-    nt_retType_string* ptr_ret;
+    nt_retType_string* ptr_ret = new nt_retType_string();
 
     ptr_ret->ptr_tk_str = match(tokenType::STRING, nullptr, nullptr);
 
@@ -1100,4 +1142,99 @@ nt_retType_string* Parser::parse_string() {
 }
 
 
+symDatatype Parser::verifyCompatibility(std::string op, symDatatype symdtype_left, 
+        symDatatype symdtype_right) {
+
+    // make sure there are no NOT_FOUND's
+    if ((symdtype_left == symDatatype::NOT_FOUND) ||
+            (symdtype_right == symDatatype::NOT_FOUND)) {
+        throw std::runtime_error("NOT_FOUND symDatatype");
+    }
+
+    if ((symdtype_left == symDatatype::INVALID_DTYPE) ||
+            (symdtype_right == symDatatype::INVALID_DTYPE)) {
+        return symDatatype::INVALID_DTYPE;
+    }
+
+    if (symdtype_left == symDatatype::NA_DTYPE) {  // TODO check 
+        return symdtype_right;
+    }
+
+    if (symdtype_right == symDatatype::NA_DTYPE) {  // TODO check
+        return symdtype_left;
+    }
+
+    // TODO check if correct
+    if ((op == "&") || (op == "|")) {
+        if ((symdtype_left == symDatatype::INT_DTYPE) &&
+                (symdtype_right == symDatatype::INT_DTYPE)) {
+            return symDatatype::INT_DTYPE;
+        } else if ((symdtype_left == symDatatype::BOOL_DTYPE) &&
+                (symdtype_right == symDatatype::BOOL_DTYPE)) {
+            return symDatatype::BOOL_DTYPE;
+        } else {
+            return symDatatype::INVALID_DTYPE;
+        }
+    }
+
+    if ((op == "<") || (op == ">=") || (op == "<=") || (op == ">") || (op == "==") || (op == "!=")) {
+        if (((symdtype_left == symDatatype::INT_DTYPE) || (symdtype_left == symDatatype::FLOAT_DTYPE)
+                    || (symdtype_left == symDatatype::BOOL_DTYPE)) &&
+                ((symdtype_right == symDatatype::INT_DTYPE) 
+                 || (symdtype_right == symDatatype::FLOAT_DTYPE)
+                 || (symdtype_right == symDatatype::BOOL_DTYPE))) {
+            return symDatatype::BOOL_DTYPE;
+        } else {
+            return symDatatype::INVALID_DTYPE;
+        }
+    }
+
+    // TODO what if right is epsilon?
+    if ((op == "+") || (op == "-")) {
+        if ((symdtype_left == symDatatype::INT_DTYPE) &&
+                (symdtype_right == symDatatype::INT_DTYPE)) {
+            return symDatatype::INT_DTYPE;
+        } else if ((symdtype_left == symDatatype::BOOL_DTYPE) &&
+                (symdtype_right == symDatatype::BOOL_DTYPE)) {
+            return symDatatype::INT_DTYPE;
+        } else if ((symdtype_left == symDatatype::FLOAT_DTYPE) &&
+                (symdtype_right == symDatatype::FLOAT_DTYPE)) {
+            return symDatatype::FLOAT_DTYPE;
+        } else {
+            return symDatatype::INVALID_DTYPE;
+        }
+
+    }
+
+    if ((op == "*") || (op == "/")) {
+        if ((symdtype_left == symDatatype::FLOAT_DTYPE) &&
+                (symdtype_right == symDatatype::FLOAT_DTYPE)) {
+            return symDatatype::FLOAT_DTYPE;
+        } else if ((symdtype_left == symDatatype::INT_DTYPE) &&
+                (symdtype_right == symDatatype::INT_DTYPE)) {
+            return symDatatype::FLOAT_DTYPE;
+        } else {
+            return symDatatype::INVALID_DTYPE;
+        }
+
+    }
+
+    if (op == "not") {
+        if ((symdtype_left == symDatatype::BOOL_DTYPE) &&
+                (symdtype_right == symDatatype::BOOL_DTYPE)) {
+            return symDatatype::BOOL_DTYPE;
+        } else {
+            return symDatatype::INVALID_DTYPE;
+        }
+    }
+
+    if (op == "") {
+        if (symdtype_left == symdtype_right)
+            return symdtype_left;
+        else
+            return symDatatype::INVALID_DTYPE;
+    }
+
+    return symDatatype::INVALID_DTYPE;
+}
 
