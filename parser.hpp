@@ -91,17 +91,17 @@ class Parser {
         nt_retType_destination* parse_destination();
         nt_retType_expression* parse_expression();
         nt_retType_arithOp* parse_arithOp();
-        nt_retType_expression_* parse_expression_();
+        nt_retType_expression_* parse_expression_(symDatatype);
         nt_retType_relation* parse_relation();
-        nt_retType_arithOp_* parse_arithOp_();
+        nt_retType_arithOp_* parse_arithOp_(symDatatype);
         nt_retType_term* parse_term();
         nt_retType_factor* parse_factor();
-        nt_retType_relation_* parse_relation_();
-        nt_retType_term_* parse_term_();
+        nt_retType_relation_* parse_relation_(symDatatype);
+        nt_retType_term_* parse_term_(symDatatype);
         nt_retType_name* parse_name();
         nt_retType_string* parse_string();
 
-        symDatatype verifyCompatibility(std::string, symDatatype, symDatatype);
+        symDatatype verifyCompatibility(tokenType, symDatatype, symDatatype);
     private:
         // TODO make the copy constructor and assignment operators private ?
         static Parser* instance_;

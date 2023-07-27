@@ -729,6 +729,8 @@ nt_retType_destination* Parser::parse_destination() {
 
 
 nt_retType_expression* Parser::parse_expression() {
+ 
+    // DONE type check
 
     prerr("parse_expression()");
     nt_retType_expression* ptr_ret = new nt_retType_expression();
@@ -738,31 +740,46 @@ nt_retType_expression* Parser::parse_expression() {
 
     Token* lookahead = lexer->getlookahead();
 
-    std::string op_not = "";
+    /* std::string op_not = ""; */
+    /* bool isNOTpresent = false; */
 
     if (lookahead->getTokenType() == tokenType::NOT_RW) {
         ptr_ret->ptr_tk_not = match(tokenType::NOT_RW, nullptr, nullptr);
 
-        op_not = "not";
+        /* op_not = "not"; */
+        /* isNOTpresent = true; */
         /* ptr_ret->syminfo->symdtype = symDatatype::NA_DTYPE; */
     }
 
     ptr_ret->ptr_arithOp = parse_arithOp();
     ptr_ret->returnCode &= ptr_ret->ptr_arithOp->returnCode;
 
-    ptr_ret->ptr_expression_ = parse_expression_();
+    ptr_ret->ptr_expression_ = parse_expression_(ptr_ret->ptr_arithOp->syminfo->symdtype);
     ptr_ret->returnCode &= ptr_ret->ptr_expression_->returnCode;
+ 
+    // if NOT is present, they type must be int or bool
+    if (ptr_ret->ptr_tk_not) {
+        if ((ptr_ret->ptr_expression_->syminfo->symdtype == symDatatype::INT_DTYPE) ||
+                (ptr_ret->ptr_expression_->syminfo->symdtype == symDatatype::BOOL_DTYPE)) {
+
+            ptr_ret->syminfo->symdtype = ptr_ret->ptr_expression_->syminfo->symdtype;
+        } else {
+            ptr_ret->syminfo->symdtype = symDatatype::INVALID_DTYPE;
+        }
+    } else {
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_expression_->syminfo->symdtype;
+    }
 
     prerr("done parse_expression");
 
-    ptr_ret->syminfo->symdtype = verifyCompatibility(op_not,
-            ptr_ret->ptr_arithOp->syminfo->symdtype,
-            ptr_ret->ptr_expression_->syminfo->symdtype);
+    /* ptr_ret->syminfo->symdtype = verifyCompatibility(op_not, */
+    /*         ptr_ret->ptr_arithOp->syminfo->symdtype, */
+    /*         ptr_ret->ptr_expression_->syminfo->symdtype); */
 
-    if (ptr_ret->syminfo->symdtype == symDatatype::INVALID_DTYPE) {
-        ptr_ret->returnCode = false;
-        // TODO report error
-    }
+    /* if (ptr_ret->syminfo->symdtype == symDatatype::INVALID_DTYPE) {  // TODO redundant? */
+    /*     ptr_ret->returnCode = false; */
+    /*     // TODO report error */
+    /* } */
 
     return ptr_ret;
 }
@@ -770,57 +787,61 @@ nt_retType_expression* Parser::parse_expression() {
 
 nt_retType_arithOp* Parser::parse_arithOp() {
 
-    nt_retType_arithOp* ptr_ret = new nt_retType_arithOp();
+    // DONE type check
 
+    nt_retType_arithOp* ptr_ret = new nt_retType_arithOp();
     ptr_ret->syminfo = new SymInfo();
 
     ptr_ret->ptr_relation = parse_relation();
     ptr_ret->returnCode &= ptr_ret->ptr_relation->returnCode;
-
     /* ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation->syminfo->symdtype; */
 
-    ptr_ret->ptr_arithOp_ = parse_arithOp_();
+    ptr_ret->ptr_arithOp_ = parse_arithOp_(ptr_ret->ptr_relation->syminfo->symdtype);
     ptr_ret->returnCode &= ptr_ret->ptr_arithOp_->returnCode;
 
-    /* ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype; */
-
-    if (ptr_ret->ptr_arithOp_->syminfo->symdtype == symDatatype::NA_DTYPE) {
-        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation->syminfo->symdtype;
-    } else if ((ptr_ret->ptr_arithOp_->syminfo->symdtype == symDatatype::INVALID_DTYPE) ||
-            (ptr_ret->ptr_relation->syminfo->symdtype == symDatatype::INVALID_DTYPE)) {
-        ptr_ret->syminfo->symdtype = symDatatype::INVALID_DTYPE;
-    } else if (ptr_ret->ptr_arithOp_->syminfo->symdtype == ptr_ret->ptr_relation->syminfo->symdtype) {
-        ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype;
-    } else {
-        ptr_ret->syminfo->symdtype = symDatatype::INVALID_DTYPE;
-    }
+    ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype;
 
     prerr("done parse_arithOp");
     return ptr_ret;
 }
 
 
-nt_retType_expression_* Parser::parse_expression_() {
-    nt_retType_expression_* ptr_ret = new nt_retType_expression_();
+nt_retType_expression_* Parser::parse_expression_(symDatatype symdtype_left) {
 
+    // DONE type check
+
+    nt_retType_expression_* ptr_ret = new nt_retType_expression_();
     ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::AMPERSAND) {
         ptr_ret->ptr_tk_ampersand = match(tokenType::AMPERSAND, nullptr, nullptr);
+
         ptr_ret->ptr_arithOp = parse_arithOp();
-        ptr_ret->ptr_expression_ = parse_expression_();
+        ptr_ret->returnCode &= ptr_ret->ptr_arithOp->returnCode;
+
+        ptr_ret->ptr_expression_ = parse_expression_(verifyCompatibility(tokenType::AMPERSAND, 
+                    symdtype_left,
+                    ptr_ret->ptr_arithOp->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_expression_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_expression_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::PIPE) {
         ptr_ret->ptr_tk_pipe = match(tokenType::PIPE, nullptr, nullptr);
         ptr_ret->ptr_arithOp = parse_arithOp();
-        ptr_ret->ptr_expression_ = parse_expression_();
+        ptr_ret->returnCode &= ptr_ret->ptr_arithOp->returnCode;
+
+        ptr_ret->ptr_expression_ = parse_expression_(verifyCompatibility(tokenType::PIPE, 
+                    symdtype_left,
+                    ptr_ret->ptr_arithOp->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_expression_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_expression_->syminfo->symdtype;
     } else {
         ptr_ret->ptr_tk_pipe = nullptr;
         ptr_ret->ptr_arithOp = nullptr;
         ptr_ret->ptr_expression_ = nullptr;
 
-        ptr_ret->syminfo->symdtype = symDatatype::NA_DTYPE;
+        ptr_ret->syminfo->symdtype = symdtype_left;
     }
 
     return ptr_ret;
@@ -829,10 +850,17 @@ nt_retType_expression_* Parser::parse_expression_() {
 
 nt_retType_relation* Parser::parse_relation() {
 
+    // DONE type check
     nt_retType_relation* ptr_ret = new nt_retType_relation();
+    ptr_ret->syminfo = new SymInfo();
 
     ptr_ret->ptr_term = parse_term();
-    ptr_ret->ptr_relation_ = parse_relation_();
+    ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+    ptr_ret->ptr_relation_ = parse_relation_(ptr_ret->ptr_term->syminfo->symdtype);
+    ptr_ret->returnCode &= ptr_ret->ptr_relation_->syminfo->symdtype;
+
+    ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
 
     prerr("done parse_relation");
 
@@ -840,24 +868,39 @@ nt_retType_relation* Parser::parse_relation() {
 }
 
 
-nt_retType_arithOp_* Parser::parse_arithOp_() {
+nt_retType_arithOp_* Parser::parse_arithOp_(symDatatype symdtype_left) {
 
-    nt_retType_arithOp_* ptr_ret = new nt_retType_arithOp_();
+    // DONE type check
+
+    auto ptr_ret = new nt_retType_arithOp_();
+    ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::PLUS) {
         ptr_ret->ptr_tk_plus = match(tokenType::PLUS, nullptr, nullptr);
         ptr_ret->ptr_relation = parse_relation();
-        ptr_ret->ptr_arithOp_ = parse_arithOp_();
+        ptr_ret->returnCode &= ptr_ret->ptr_relation->returnCode;
+
+        ptr_ret->ptr_arithOp_ = parse_arithOp_(verifyCompatibility(tokenType::PLUS, symdtype_left,
+                    ptr_ret->ptr_relation->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_arithOp_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::MINUS) {
         ptr_ret->ptr_tk_plus = match(tokenType::MINUS, nullptr, nullptr);
         ptr_ret->ptr_relation = parse_relation();
-        ptr_ret->ptr_arithOp_ = parse_arithOp_();
+        ptr_ret->returnCode &= ptr_ret->ptr_relation->returnCode;
+
+        ptr_ret->ptr_arithOp_ = parse_arithOp_(verifyCompatibility(tokenType::MINUS, symdtype_left,
+                    ptr_ret->ptr_relation->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_arithOp_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_arithOp_->syminfo->symdtype;
     } else {
         ptr_ret->ptr_tk_plus = nullptr;
         ptr_ret->ptr_relation = nullptr;
         ptr_ret->ptr_arithOp_ = nullptr;
+
+        ptr_ret->syminfo->symdtype = symdtype_left;
     }
 
     return ptr_ret;
@@ -865,11 +908,21 @@ nt_retType_arithOp_* Parser::parse_arithOp_() {
 
 
 nt_retType_term* Parser::parse_term() {
+
+    // DONE type check
+
     nt_retType_term* ptr_ret = new nt_retType_term();
+    ptr_ret->syminfo = new SymInfo();
 
     ptr_ret->ptr_factor = parse_factor();
+    ptr_ret->returnCode &= ptr_ret->ptr_factor->returnCode;
+
     prerr("done parse_factor()");
-    ptr_ret->ptr_term_ = parse_term_();
+    ptr_ret->ptr_term_ = parse_term_(ptr_ret->ptr_factor->syminfo->symdtype);
+    ptr_ret->returnCode &= ptr_ret->ptr_term_->returnCode;
+
+    ptr_ret->syminfo->symdtype = ptr_ret->ptr_term_->syminfo->symdtype;
+
     prerr("done parse_term_()");
 
     return ptr_ret;
@@ -878,10 +931,10 @@ nt_retType_term* Parser::parse_term() {
 
 nt_retType_factor* Parser::parse_factor() {
 
-    // TODO return data type from here?
+    // type check incomplete
+
     prerr("parse_factor()");
     nt_retType_factor* ptr_ret = new nt_retType_factor();
-
     ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
@@ -906,45 +959,37 @@ nt_retType_factor* Parser::parse_factor() {
 
         if (lookahead->getTokenType() == tokenType::IDENTIFIER) {  // handle -name
             ptr_ret->ptr_name = parse_name();
-
             ptr_ret->returnCode &= ptr_ret->ptr_name->returnCode;
             ptr_ret->syminfo->symdtype = ptr_ret->ptr_name->syminfo->symdtype;
         } else if (lookahead->getTokenType() == tokenType::INTEGER) {  // handle -int
             ptr_ret->ptr_number = parse_number();
-
             ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
             ptr_ret->syminfo->symdtype = symDatatype::INT_DTYPE;
         } else if (lookahead->getTokenType() == tokenType::FLOAT) {  // handle -float
             ptr_ret->ptr_number = parse_number();
-
             ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
             ptr_ret->syminfo->symdtype = symDatatype::FLOAT_DTYPE;
         }
     } else if (lookahead->getTokenType() == tokenType::INTEGER) {  // handle int
         prerr("handling int");
         ptr_ret->ptr_number = parse_number();
-
         ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
         ptr_ret->syminfo->symdtype = symDatatype::INT_DTYPE;
         prerr("handled int");
     } else if (lookahead->getTokenType() == tokenType::FLOAT) {  // handle float
         ptr_ret->ptr_number = parse_number();
-
         ptr_ret->returnCode &= ptr_ret->ptr_number->returnCode;
         ptr_ret->syminfo->symdtype = symDatatype::FLOAT_DTYPE;
     } else if (lookahead->getTokenType() == tokenType::STRING) {  // handle string
         ptr_ret->ptr_string = parse_string();
-
         ptr_ret->returnCode &= ptr_ret->ptr_string->returnCode;
         ptr_ret->syminfo->symdtype = symDatatype::STR_DTYPE;
     } else if (lookahead->getTokenType() == tokenType::TRUE_RW) {  // handle true
         ptr_ret->ptr_tk_true = match(tokenType::TRUE_RW, nullptr, nullptr);
-
         ptr_ret->returnCode &= (ptr_ret->ptr_tk_true->getTokenType() != tokenType::INVALID);
         ptr_ret->syminfo->symdtype = symDatatype::BOOL_DTYPE;
     } else if (lookahead->getTokenType() == tokenType::FALSE_RW) {  // handle false
         ptr_ret->ptr_tk_false = match(tokenType::FALSE_RW, nullptr, nullptr);
-
         ptr_ret->returnCode &= (ptr_ret->ptr_tk_true->getTokenType() != tokenType::INVALID);
         ptr_ret->syminfo->symdtype = symDatatype::BOOL_DTYPE;
     } else {
@@ -959,7 +1004,6 @@ nt_retType_factor* Parser::parse_factor() {
          */
 
         nt_retType_identifier* ptr_identifier_nameOrProdecure = parse_identifier(nullptr);
-
         ptr_ret->returnCode &= ptr_identifier_nameOrProdecure->returnCode;
 
         lookahead = lexer->getlookahead();
@@ -972,7 +1016,6 @@ nt_retType_factor* Parser::parse_factor() {
 
         // for procedure call
         nt_retType_procedure_call* ptr_procedurecall = nullptr;
-
         Token* tk_procedurecall_lparen = nullptr;
         nt_retType_argument_list* ptr_procedurecall_arglist = nullptr;
         Token* tk_procedurecall_rparen = nullptr;
@@ -981,8 +1024,8 @@ nt_retType_factor* Parser::parse_factor() {
             
             // handle [expression] for <name> : <identifier> [[<expression>]]
             tk_name_lbkt = match(tokenType::L_BRACKET, nullptr, nullptr);
-            ptr_name_expression = parse_expression();  // should this evaluate to number?
 
+            ptr_name_expression = parse_expression();  // should this evaluate to number?
             ptr_ret->returnCode &= ptr_name_expression->returnCode;
 
             tk_name_rbkt = match(tokenType::R_BRACKET, nullptr, nullptr);
@@ -994,6 +1037,11 @@ nt_retType_factor* Parser::parse_factor() {
             ptr_name->ptr_tk_rbkt = tk_name_rbkt;
 
             ptr_ret->ptr_name = ptr_name;
+
+            // verify that expression is int
+            if (ptr_ret->ptr_name->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE) {
+                logger->reportError("array index is not INT type");
+            }
 
             // now, get the symdtype of the identifier from the symbol table
             ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
@@ -1019,7 +1067,9 @@ nt_retType_factor* Parser::parse_factor() {
             ptr_procedurecall->ptr_tk_rparen = tk_procedurecall_rparen;
 
             ptr_ret->ptr_procedure_call = ptr_procedurecall;
- 
+
+            // TODO arglist should match
+
             // now, get the symdtype of the identifier from the symbol table
             ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
                     ptr_procedurecall->ptr_identifier->ptr_tk_str->getTokenStr());
@@ -1030,8 +1080,8 @@ nt_retType_factor* Parser::parse_factor() {
 
             ptr_ret->ptr_name = ptr_name;
 
-            symDatatype symd = LEXER->getSymbolTable().getSymDtype(
-                    ptr_name->ptr_identifier->ptr_tk_str->getTokenStr());
+            /* symDatatype symd = LEXER->getSymbolTable().getSymDtype( */
+            /*         ptr_name->ptr_identifier->ptr_tk_str->getTokenStr()); */
             
             /* symDatatype symdd = ptr_name->syminfo->symdtype; */
             /* symDatatype symddd = symDatatype::NOT_FOUND ; */
@@ -1050,64 +1100,120 @@ nt_retType_factor* Parser::parse_factor() {
 }
 
 
-nt_retType_relation_* Parser::parse_relation_() {
+nt_retType_relation_* Parser::parse_relation_(symDatatype symdtype_left) {
+
+    // DONE type check
 
     nt_retType_relation_* ptr_ret = new nt_retType_relation_();
+    ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::LESS_THAN) {
         ptr_ret->ptr_tk_lessthan = match(tokenType::LESS_THAN, nullptr, nullptr);
+
         ptr_ret->ptr_term = parse_term();
-        ptr_ret->ptr_relation_ = parse_relation_();
+        ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+        ptr_ret->ptr_relation_ = parse_relation_(verifyCompatibility(tokenType::LESS_THAN, symdtype_left,
+                    ptr_ret->ptr_term->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_relation_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::GREATER_EQUAL) {
         ptr_ret->ptr_tk_lessthan = match(tokenType::GREATER_EQUAL, nullptr, nullptr);
+
         ptr_ret->ptr_term = parse_term();
-        ptr_ret->ptr_relation_ = parse_relation_();
+        ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+        ptr_ret->ptr_relation_ = parse_relation_(verifyCompatibility(tokenType::GREATER_EQUAL,
+                    symdtype_left,
+                    ptr_ret->ptr_term->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_relation_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::LESS_EQUAL) {
         ptr_ret->ptr_tk_lessthan = match(tokenType::LESS_EQUAL, nullptr, nullptr);
         ptr_ret->ptr_term = parse_term();
-        ptr_ret->ptr_relation_ = parse_relation_();
+        ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+        ptr_ret->ptr_relation_ = parse_relation_(verifyCompatibility(tokenType::LESS_EQUAL, symdtype_left,
+                    ptr_ret->ptr_term->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_relation_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::GREATER_THAN) {
         ptr_ret->ptr_tk_lessthan = match(tokenType::GREATER_THAN, nullptr, nullptr);
         ptr_ret->ptr_term = parse_term();
-        ptr_ret->ptr_relation_ = parse_relation_();
+        ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+        ptr_ret->ptr_relation_ = parse_relation_(verifyCompatibility(tokenType::GREATER_THAN,
+                    symdtype_left,
+                    ptr_ret->ptr_term->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_relation_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::EQUALS) {
         ptr_ret->ptr_tk_lessthan = match(tokenType::EQUALS, nullptr, nullptr);
         ptr_ret->ptr_term = parse_term();
-        ptr_ret->ptr_relation_ = parse_relation_();
+        ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+        ptr_ret->ptr_relation_ = parse_relation_(verifyCompatibility(tokenType::EQUALS, symdtype_left,
+                    ptr_ret->ptr_term->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_relation_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::NOT_EQUAL) {
         ptr_ret->ptr_tk_lessthan = match(tokenType::NOT_EQUAL, nullptr, nullptr);
         ptr_ret->ptr_term = parse_term();
-        ptr_ret->ptr_relation_ = parse_relation_();
+        ptr_ret->returnCode &= ptr_ret->ptr_term->returnCode;
+
+        ptr_ret->ptr_relation_ = parse_relation_(verifyCompatibility(tokenType::NOT_EQUAL, symdtype_left,
+                    ptr_ret->ptr_term->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_relation_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_relation_->syminfo->symdtype;
     } else {
         ptr_ret->ptr_tk_lessthan = nullptr;
         ptr_ret->ptr_term = nullptr;
         ptr_ret->ptr_relation_ = nullptr;
+
+        ptr_ret->syminfo->symdtype = symdtype_left;
     }
 
     return ptr_ret;
 }
 
 
-nt_retType_term_* Parser::parse_term_() {
+nt_retType_term_* Parser::parse_term_(symDatatype symdtype_left) {
+
+    // DONE type check
 
     nt_retType_term_* ptr_ret = new nt_retType_term_();
+    ptr_ret->syminfo = new SymInfo();
 
     Token* lookahead = lexer->getlookahead();
 
     if (lookahead->getTokenType() == tokenType::MULTIPLY) {
         ptr_ret->ptr_tk_mul = match(tokenType::MULTIPLY, nullptr, nullptr);
         ptr_ret->ptr_factor = parse_factor();
-        ptr_ret->ptr_term_ = parse_term_();
+        ptr_ret->returnCode &= ptr_ret->ptr_factor->returnCode;
+
+        ptr_ret->ptr_term_ = parse_term_(verifyCompatibility(tokenType::MULTIPLY, 
+                    symdtype_left,
+                    ptr_ret->ptr_factor->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_term_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_term_->syminfo->symdtype;
     } else if (lookahead->getTokenType() == tokenType::DIVIDE) {
         ptr_ret->ptr_tk_mul = match(tokenType::DIVIDE, nullptr, nullptr);
         ptr_ret->ptr_factor = parse_factor();
-        ptr_ret->ptr_term_ = parse_term_();
+        ptr_ret->returnCode &= ptr_ret->ptr_factor->returnCode;
+
+        ptr_ret->ptr_term_ = parse_term_(verifyCompatibility(tokenType::DIVIDE, 
+                    symdtype_left,
+                    ptr_ret->ptr_factor->syminfo->symdtype));
+        ptr_ret->returnCode &= ptr_ret->ptr_term_->returnCode;
+        ptr_ret->syminfo->symdtype = ptr_ret->ptr_term_->syminfo->symdtype;
     } else {
         ptr_ret->ptr_tk_mul = nullptr;
         ptr_ret->ptr_factor = nullptr;
         ptr_ret->ptr_term_ = nullptr;
+
+        ptr_ret->syminfo->symdtype = symdtype_left;
     }
 
     return ptr_ret;
@@ -1142,8 +1248,10 @@ nt_retType_string* Parser::parse_string() {
 }
 
 
-symDatatype Parser::verifyCompatibility(std::string op, symDatatype symdtype_left, 
+symDatatype Parser::verifyCompatibility(tokenType ttype, symDatatype symdtype_left, 
         symDatatype symdtype_right) {
+
+    // TODO check
 
     // make sure there are no NOT_FOUND's
     if ((symdtype_left == symDatatype::NOT_FOUND) ||
@@ -1165,7 +1273,7 @@ symDatatype Parser::verifyCompatibility(std::string op, symDatatype symdtype_lef
     }
 
     // TODO check if correct
-    if ((op == "&") || (op == "|")) {
+    if ((ttype == tokenType::AMPERSAND) || (ttype == tokenType::PIPE)) {
         if ((symdtype_left == symDatatype::INT_DTYPE) &&
                 (symdtype_right == symDatatype::INT_DTYPE)) {
             return symDatatype::INT_DTYPE;
@@ -1177,7 +1285,10 @@ symDatatype Parser::verifyCompatibility(std::string op, symDatatype symdtype_lef
         }
     }
 
-    if ((op == "<") || (op == ">=") || (op == "<=") || (op == ">") || (op == "==") || (op == "!=")) {
+    if ((ttype == tokenType::LESS_THAN) || (ttype == tokenType::GREATER_EQUAL) || (ttype == tokenType::LESS_EQUAL)
+            || (ttype == tokenType::GREATER_THAN) 
+            || (ttype == tokenType::EQUALS)
+            || (ttype == tokenType::NOT_EQUAL)) {
         if (((symdtype_left == symDatatype::INT_DTYPE) || (symdtype_left == symDatatype::FLOAT_DTYPE)
                     || (symdtype_left == symDatatype::BOOL_DTYPE)) &&
                 ((symdtype_right == symDatatype::INT_DTYPE) 
@@ -1190,7 +1301,7 @@ symDatatype Parser::verifyCompatibility(std::string op, symDatatype symdtype_lef
     }
 
     // TODO what if right is epsilon?
-    if ((op == "+") || (op == "-")) {
+    if ((ttype == tokenType::PLUS) || (ttype == tokenType::MINUS)) {
         if ((symdtype_left == symDatatype::INT_DTYPE) &&
                 (symdtype_right == symDatatype::INT_DTYPE)) {
             return symDatatype::INT_DTYPE;
@@ -1200,35 +1311,40 @@ symDatatype Parser::verifyCompatibility(std::string op, symDatatype symdtype_lef
         } else if ((symdtype_left == symDatatype::FLOAT_DTYPE) &&
                 (symdtype_right == symDatatype::FLOAT_DTYPE)) {
             return symDatatype::FLOAT_DTYPE;
+        } else if (((symdtype_left == symDatatype::FLOAT_DTYPE) && (symdtype_right == symDatatype::INT_DTYPE))
+                || ((symdtype_left == symDatatype::INT_DTYPE) && (symdtype_right == symDatatype::FLOAT_DTYPE))) {
+            return symDatatype::FLOAT_DTYPE;
         } else {
             return symDatatype::INVALID_DTYPE;
         }
 
     }
 
-    if ((op == "*") || (op == "/")) {
+    if ((ttype == tokenType::MULTIPLY) || (ttype == tokenType::DIVIDE)) {
         if ((symdtype_left == symDatatype::FLOAT_DTYPE) &&
                 (symdtype_right == symDatatype::FLOAT_DTYPE)) {
             return symDatatype::FLOAT_DTYPE;
         } else if ((symdtype_left == symDatatype::INT_DTYPE) &&
                 (symdtype_right == symDatatype::INT_DTYPE)) {
             return symDatatype::FLOAT_DTYPE;
+        } else if (((symdtype_left == symDatatype::FLOAT_DTYPE) && (symdtype_right == symDatatype::INT_DTYPE))
+                || ((symdtype_left == symDatatype::INT_DTYPE) && (symdtype_right == symDatatype::FLOAT_DTYPE))) {
+            return symDatatype::FLOAT_DTYPE;
         } else {
             return symDatatype::INVALID_DTYPE;
         }
-
     }
 
-    if (op == "not") {
-        if ((symdtype_left == symDatatype::BOOL_DTYPE) &&
-                (symdtype_right == symDatatype::BOOL_DTYPE)) {
+    if (ttype == tokenType::NOT_RW) {
+        if (((symdtype_left == symDatatype::BOOL_DTYPE) || (symdtype_left == symDatatype::NA_DTYPE)) &&
+                ((symdtype_right == symDatatype::BOOL_DTYPE) || (symdtype_right == symDatatype::INT_DTYPE))) {
             return symDatatype::BOOL_DTYPE;
         } else {
             return symDatatype::INVALID_DTYPE;
         }
     }
 
-    if (op == "") {
+    if (ttype == tokenType::UNKNOWN) {
         if (symdtype_left == symdtype_right)
             return symdtype_left;
         else
