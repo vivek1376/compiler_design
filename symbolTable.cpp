@@ -9,7 +9,7 @@
 /* SymInfo::SymInfo(Token* token) : tok(token) {} */
 
 
-SymInfo::SymInfo() : tok{nullptr}, symtype{symType::NA_SYM}, symdtype{symDatatype::NA_DTYPE} {}
+SymInfo::SymInfo() : tok{nullptr}, symtype{symType::NA_SYM}, symdtype{symDatatype::NOT_FOUND} {}
 
 
 SymInfo::SymInfo(Token* token) {
@@ -17,9 +17,9 @@ SymInfo::SymInfo(Token* token) {
 }
 
 SymInfo::SymInfo(Token* token, symType symtype, symDatatype symdtype) {
-    tok = new Token(*token);
-    symtype = symtype;
-    symdtype = symdtype;
+    this->tok = new Token(*token);
+    this->symtype = symtype;
+    this->symdtype = symdtype;
 }
 
 SymInfo::SymInfo(const SymInfo& that) {

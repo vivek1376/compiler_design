@@ -157,8 +157,6 @@ class nt_retType_program_body : public nt_retType {
 
 class nt_retType_declaration : public nt_retType {
     public:
-        int whichRule;
-
         Token* ptr_tk_global;
         nt_retType_procedure_declaration* ptr_procedure_declaration;
 
