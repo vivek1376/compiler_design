@@ -41,16 +41,21 @@ Token* SymInfo::getToken() {
 
 void SymInfo::print() {}
 
-SymInfo::~SymInfo() noexcept{
-    delete tok;  // TODO check
-}
+/* SymInfo::~SymInfo() noexcept{ */
+/*     delete tok;  // TODO check */
+/* } */
 
 
 SymInfo_array::SymInfo_array(const SymInfo& that) : SymInfo(that) {
     std::cout << "Syminfo_array copy called" << std::endl;
 }
 
+
 SymInfo_proc::SymInfo_proc() : SymInfo() {}
+
+
+SymInfo_proc::SymInfo_proc(int val) : SymInfo(), dummyval(val) {}
+
 
 SymInfo_proc::SymInfo_proc(Token* tok, symDatatype symdtype) : SymInfo(tok, symType::PROC_SYM, symdtype) {
     /* symtype = symType::PROC_SYM; */
@@ -70,6 +75,11 @@ SymInfo_proc& SymInfo_proc::operator=(const SymInfo& syminfo) {
 void SymInfo_proc::print() {}
 
 
+std::vector<std::unordered_map<std::string, SymInfo*>>& SymbolTable::getTable() {
+    return vec_symtab;
+}
+
+
 void SymbolTable::addTable() {
     // TODO change ?
     vec_symtab.push_back(std::unordered_map<std::string, SymInfo*>());
@@ -78,6 +88,7 @@ void SymbolTable::addTable() {
 
 /* Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) { */
 Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentScope, SymInfo** p_syminfo) {
+
     // lookup in current scope, insert if not present in current scope
     // NOTE symbol table only stores identifiers
 
@@ -91,10 +102,14 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
         if (ptr_inCurrentScope) {
             *ptr_inCurrentScope = true;
         }
+
+        /* std::cout << "Error: Duplicate symbol declaration: " << tokenStr << std::endl; */
         /* if (symscopeinfo) { */
         /*     symscopeinfo->ptr_inCurrentScope = true; */
         /*     symscopeinfo->syminfo = vec_symtab.back().find(tokenStr)->second; */
         /* } */
+
+        /* logger->reportError(""); */
 
         if (p_syminfo) *p_syminfo = vec_symtab.back().find(tokenStr)->second;
         return vec_symtab.back().find(tokenStr)->second->getToken();
@@ -139,6 +154,20 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
     if (p_syminfo) *p_syminfo = vec_symtab.back().find(tokenStr)->second;
 
     return vec_symtab.back().find(tokenStr)->second->getToken();
+}
+
+
+SymInfo* SymbolTable::getSymbolInfo(std::string tokenStr, symType symtype) {
+
+    for (auto it = vec_symtab.rbegin(); it != vec_symtab.rend(); ++it) {
+        if (it->find(tokenStr) != it->end()) {
+            /* return std::make_pair(scopeDepth, it->find(tokenStr)->second); */
+            if (it->find(tokenStr)->second->symtype == symtype)
+                return it->find(tokenStr)->second;
+        }
+    }
+
+    return nullptr;
 }
 
 

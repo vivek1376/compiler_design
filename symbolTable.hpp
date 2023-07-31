@@ -8,7 +8,8 @@
 #include <unordered_map>
 #include "token.hpp"
 
-enum symType {VAR_SYM, PROC_SYM, CONST_SYM, OTHERS_SYM, NA_SYM};
+// PROG_SYM for whole program?
+enum symType {VAR_SYM, PROC_SYM, PROG_SYM, CONST_SYM, OTHERS_SYM, NA_SYM};
 
 // NA_DTYPE is for epsilon rule
 enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE, NOT_FOUND, 
@@ -39,7 +40,9 @@ class SymInfo {
 
 
         virtual void print();  // TODO for dynamic_cast ?
-        virtual ~SymInfo() noexcept;  // see https://stackoverflow.com/a/4227337/9894266
+        /* virtual ~SymInfo() noexcept;  // see https://stackoverflow.com/a/4227337/9894266 */
+        /* virtual ~SymInfo() {}; */
+        virtual ~SymInfo() = default;  // https://stackoverflow.com/a/62409048/9894266
 };
 
 
@@ -57,8 +60,13 @@ class SymInfo_proc : public SymInfo {
     public:
 
         std::vector<SymInfo*> list_param;
-        explicit  SymInfo_proc();
-        explicit SymInfo_proc(Token*, symDatatype);
+        int dummyval;
+
+        /* explicit  SymInfo_proc(); */
+        SymInfo_proc();
+        SymInfo_proc(int);
+        /* explicit SymInfo_proc(Token*, symDatatype); */
+        SymInfo_proc(Token*, symDatatype);
         SymInfo_proc& operator=(const SymInfo&);
         void print() override;
 };
@@ -85,8 +93,10 @@ class SymbolTable {
         Token* lookupTokenString(std::string, bool*, SymInfo**);
 
         void printTable();
+        SymInfo* getSymbolInfo(std::string, symType);
         symDatatype getSymDtype(std::string);
         void addTable();
+        std::vector<std::unordered_map<std::string, SymInfo*>>& getTable();
         void printAllKeys();
         /* SymbolTable(); */
 

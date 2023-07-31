@@ -229,7 +229,7 @@ nt_retType_statement* Parser::parse_statement() {
 
 nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
 
-    LEXER->addSymbolTable();
+    /* LEXER->addSymbolTable(); */
 
     auto ptr_ret = new nt_retType_procedure_declaration();
 
@@ -245,6 +245,8 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
 
     ptr_ret->ptr_procedure_body = parse_procedure_body();
     if (!ptr_ret->ptr_procedure_body->returnCode) ptr_ret->returnCode = false;
+
+    LEXER->getSymbolTable().getTable().pop_back();
 
     return ptr_ret;
 }
@@ -359,15 +361,44 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
 
     auto ptr_ret = new nt_retType_procedure_header();
 
+    // TODO confusing naming
+
     ptr_ret->ptr_tk_procedure = match(tokenType::PROCEDURE_RW, nullptr, nullptr);
 
     bool inCurrentScope;
     ptr_ret->ptr_identifier = parse_identifier(&inCurrentScope);
     ptr_ret->returnCode &= ptr_ret->ptr_identifier->returnCode;
+
     /* if (!ptr_ret->ptr_identifier->returnCode) { */
     /*     logger->reportError("Identifier parse error in procedure header"); */
     /*     ptr_ret->returnCode = false; */
     /* } */
+
+    /* modify syminfo for this procedure name
+     *
+     *
+     *
+     *
+     */
+
+    /* std::unordered_map<std::string, SymInfo*>& symtab_curr = LEXER->getSymbolTable().getTable().back(); */
+
+    std::unordered_map<std::string, SymInfo*>* symtab_curr = &(LEXER->getSymbolTable().getTable().back());
+
+    auto proc_name = ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr();
+
+    if (symtab_curr->find(proc_name) == symtab_curr->end()){
+        throw std::runtime_error("identifier not found in symbol table");
+    } else {
+        std::cout << "found identifier in symbol table" << std::endl;
+    }
+
+    std::cout << "SymInfo before: " << (*symtab_curr)[proc_name] << std::endl;
+
+    (*symtab_curr)[proc_name] = syminfo_proc;
+
+    /* std::cout << "after: " << symtab_curr[ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()] << std::endl; */
+    /* std::cout << "after using ptr: " << (*symtab_curr2)[ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()] << std::endl; */
 
     // check duplicate
     if (inCurrentScope) {
@@ -383,6 +414,27 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
                                                  // yes, token strings printed in
                                                  // "lookahead is: " and "match()" changes
                                                  // deleting will delete entry in symbol table
+
+    syminfo_proc->symtype = symType::PROC_SYM;
+    /* syminfo_proc->dummyval = 42; */
+
+    /* std::cout << "identifier string before: " << ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr() << std::endl; */
+
+    /* std::cout << "syminfo_proc addr: " << syminfo_proc << std::endl; */
+    /* std::cout << "symbol table map syminfo addr: " << symtab_curr[ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()] << std::endl; */
+
+    /* SymInfo_proc *p_syminfoproc = dynamic_cast<SymInfo_proc*>(symtab_curr[ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()]); */
+
+    /* std::cout << "p_syminfoproc addr using dynamic_cast: " << p_syminfoproc << std::endl; */
+
+    /* std::cout << "accessing base member using SymInfo pointer: " << symtab_curr[ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()]->symtype << std::endl; */
+    /* std::cout << "accessing base member using syminfoproc pointer: " */
+    /*     << p_syminfoproc->symtype << std::endl; */
+    /* std::cout << "accessing derived member using syminfoproc pointer: " */
+    /*     << p_syminfoproc->dummyval << std::endl; */
+    /* std::cout << "accessing another derived member using syminfoproc pointer: " */
+    /*     << p_syminfoproc->list_param.size() << std::endl; */
+    /* std::cout << "dummyval: " << symtab_curr[ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()]->dummyval << std::endl; */
 
     ptr_ret->ptr_tk_colon = match(tokenType::COLON, nullptr, nullptr);
 
@@ -400,6 +452,18 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     }
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
+
+    std::cout << "symbol table map syminfo addr 2: " << (*symtab_curr)[proc_name] << std::endl;
+
+    // now, add new symbol table to store local variables of the procedure
+    LEXER->addSymbolTable();
+
+    // since new symbol table got added, get pointer to second last table in the vector which stores the 
+    // procedure symbol info
+    symtab_curr = &(LEXER->getSymbolTable().getTable()[LEXER->getSymbolTable().getTable().size() - 2]);
+
+    std::cout << "symbol table map syminfo addr 3: " 
+        << (*symtab_curr)[proc_name] << std::endl;
 
     auto lookahead = lexer->getlookahead();
 
@@ -429,6 +493,22 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
             paramList = paramList->ptr_parameter_list;
         }
     }
+
+
+    // testing dynamic_cast
+    SymInfo *p_s1 = new SymInfo_proc(42);
+    SymInfo_proc *p_s2 = dynamic_cast<SymInfo_proc*>(p_s1);
+
+    std::cout << "dynamic test: " << std::endl;
+    std::cout << "dynamic test: " << p_s2->dummyval << std::endl;
+
+    /* std::cout << "after paramList: " << std::endl; */
+
+    std::cout << "symbol table map syminfo addr after: " << (*symtab_curr)[proc_name] << std::endl;
+
+    p_s2 = dynamic_cast<SymInfo_proc*>((*symtab_curr)[proc_name]);
+    std::cout << "p_s2 addr: " << p_s2 << std::endl;
+    std::cout << "after paramList: " << p_s2->list_param.size() << std::endl;
 
     ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
 
@@ -1118,7 +1198,7 @@ nt_retType_factor* Parser::parse_factor() {
         Token *tk_name_rbkt = nullptr;
 
         // for procedure call
-        nt_retType_procedure_call* ptr_procedurecall = nullptr;
+        nt_retType_procedure_call* ptr_procedure_call = nullptr;
         Token* tk_procedurecall_lparen = nullptr;
         nt_retType_argument_list* ptr_procedurecall_arglist = nullptr;
         Token* tk_procedurecall_rparen = nullptr;
@@ -1163,19 +1243,65 @@ nt_retType_factor* Parser::parse_factor() {
 
             tk_procedurecall_rparen = match(tokenType::R_PAREN, nullptr, nullptr);  // handle )
 
-            ptr_procedurecall = new nt_retType_procedure_call();
-            ptr_procedurecall->ptr_identifier = ptr_identifier_nameOrProdecure;
-            ptr_procedurecall->ptr_tk_lparen = tk_procedurecall_lparen;
-            ptr_procedurecall->ptr_argument_list = ptr_procedurecall_arglist;
-            ptr_procedurecall->ptr_tk_rparen = tk_procedurecall_rparen;
+            ptr_procedure_call = new nt_retType_procedure_call();
+            ptr_procedure_call->ptr_identifier = ptr_identifier_nameOrProdecure;
+            ptr_procedure_call->ptr_tk_lparen = tk_procedurecall_lparen;
+            ptr_procedure_call->ptr_argument_list = ptr_procedurecall_arglist;
+            ptr_procedure_call->ptr_tk_rparen = tk_procedurecall_rparen;
 
-            ptr_ret->ptr_procedure_call = ptr_procedurecall;
+            ptr_ret->ptr_procedure_call = ptr_procedure_call;
 
             // TODO arglist should match
+            // arglist from procedure call, not procedure declaration
+
+            std::string proc_name = 
+                ptr_ret->ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr();
+            SymInfo* procedure_decl_SymInfo = LEXER->getSymbolTable().getSymbolInfo(proc_name, 
+                    symType::PROC_SYM);
+            std::cout << "proc SymInfo retreived: " << procedure_decl_SymInfo << std::endl;
+            SymInfo_proc* procedure_decl_SymInfo_proc = dynamic_cast<SymInfo_proc*>(procedure_decl_SymInfo);
+
+            /* auto syminfo_proc_symtable = ( */
+            /*         LEXER->getSymbolTable().getSymbolInfo( */
+            /*             ptr_ret->ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr())); */
+            std::cout << "syminfo_proc_symtable: " << procedure_decl_SymInfo_proc << std::endl;
+
+            if ((procedure_decl_SymInfo_proc == nullptr)
+                    || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) {
+                throw std::runtime_error("Procedure name not found in symbol table" );
+            }
+
+            // build a vector of SymInfo* from argList
+            std::vector<SymInfo*> vec_procedure_call_argList_SymInfo;
+
+            nt_retType_argument_list *argList = ptr_ret->ptr_procedure_call->ptr_argument_list;
+
+            while (argList) {
+                vec_procedure_call_argList_SymInfo.push_back(
+                        argList->ptr_expression->syminfo);
+
+                ptr_ret->returnCode &= argList->returnCode;
+
+                argList = argList->ptr_argument_list;
+            }
+
+            if (vec_procedure_call_argList_SymInfo.size() != 
+                    procedure_decl_SymInfo_proc->list_param.size()) {
+                logger->reportError("Procedure call argument list length mismatch");
+            } else {
+                for (int i = 0; i < vec_procedure_call_argList_SymInfo.size(); i++) {
+                    if (vec_procedure_call_argList_SymInfo[i]->symdtype !=
+                    procedure_decl_SymInfo_proc->list_param[i]->symdtype) {
+                        logger->reportError("Procedure call arg type mismatch");
+                        ptr_ret->returnCode = false;
+                        break;
+                    }
+                }
+            }
 
             // now, get the symdtype of the identifier from the symbol table
             ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
-                    ptr_procedurecall->ptr_identifier->ptr_tk_str->getTokenStr());
+                    ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr());
         } else {
             // handle <identifier>
             ptr_name = new nt_retType_name();
