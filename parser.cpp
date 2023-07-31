@@ -1256,19 +1256,25 @@ nt_retType_factor* Parser::parse_factor() {
 
             std::string proc_name = 
                 ptr_ret->ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr();
-            SymInfo* procedure_decl_SymInfo = LEXER->getSymbolTable().getSymbolInfo(proc_name, 
-                    symType::PROC_SYM);
-            std::cout << "proc SymInfo retreived: " << procedure_decl_SymInfo << std::endl;
-            SymInfo_proc* procedure_decl_SymInfo_proc = dynamic_cast<SymInfo_proc*>(procedure_decl_SymInfo);
+
+            /* SymInfo* procedure_decl_SymInfo = LEXER->getSymbolTable().getSymbolInfo(proc_name, */ 
+            /*         symType::PROC_SYM); */
+            /* std::cout << "proc SymInfo retreived: " << procedure_decl_SymInfo << std::endl; */
+            // get symbol info for this procedure name
+            SymInfo_proc* procedure_decl_SymInfo_proc = dynamic_cast<SymInfo_proc*>(
+                    LEXER->getSymbolTable().getSymbolInfo(proc_name, 
+                        symType::PROC_SYM));
 
             /* auto syminfo_proc_symtable = ( */
             /*         LEXER->getSymbolTable().getSymbolInfo( */
             /*             ptr_ret->ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr())); */
             std::cout << "syminfo_proc_symtable: " << procedure_decl_SymInfo_proc << std::endl;
 
-            if ((procedure_decl_SymInfo_proc == nullptr)
-                    || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) {
-                throw std::runtime_error("Procedure name not found in symbol table" );
+            if (procedure_decl_SymInfo_proc == nullptr) {
+                    /* || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) { */
+                /* throw std::runtime_error("Procedure name not found in symbol table" ); */
+                logger->reportError(std::string("Procedure '" + proc_name 
+                            + "' not declared"));
             }
 
             // build a vector of SymInfo* from argList
@@ -1285,16 +1291,18 @@ nt_retType_factor* Parser::parse_factor() {
                 argList = argList->ptr_argument_list;
             }
 
-            if (vec_procedure_call_argList_SymInfo.size() != 
-                    procedure_decl_SymInfo_proc->list_param.size()) {
-                logger->reportError("Procedure call argument list length mismatch");
-            } else {
-                for (int i = 0; i < vec_procedure_call_argList_SymInfo.size(); i++) {
-                    if (vec_procedure_call_argList_SymInfo[i]->symdtype !=
-                    procedure_decl_SymInfo_proc->list_param[i]->symdtype) {
-                        logger->reportError("Procedure call arg type mismatch");
-                        ptr_ret->returnCode = false;
-                        break;
+            if (procedure_decl_SymInfo_proc) {
+                if (vec_procedure_call_argList_SymInfo.size() != 
+                        procedure_decl_SymInfo_proc->list_param.size()) {
+                    logger->reportError("Procedure call argument list length mismatch");
+                } else {
+                    for (int i = 0; i < vec_procedure_call_argList_SymInfo.size(); i++) {
+                        if (vec_procedure_call_argList_SymInfo[i]->symdtype !=
+                                procedure_decl_SymInfo_proc->list_param[i]->symdtype) {
+                            logger->reportError("Procedure call arg type mismatch");
+                            ptr_ret->returnCode = false;
+                            break;
+                        }
                     }
                 }
             }
