@@ -102,6 +102,8 @@ nt_retType_program* Parser::parse_program() {
 
     ptr_ret->ptr_tk_dot = match(tokenType::DOT, nullptr, nullptr);
 
+    LEXER->getSymbolTable().removeTable();
+
     return ptr_ret;
 }
 
@@ -246,7 +248,8 @@ nt_retType_procedure_declaration* Parser::parse_procedure_declaration() {
     ptr_ret->ptr_procedure_body = parse_procedure_body();
     if (!ptr_ret->ptr_procedure_body->returnCode) ptr_ret->returnCode = false;
 
-    LEXER->getSymbolTable().getTable().pop_back();
+    /* LEXER->getSymbolTable().getTable().pop_back(); */
+    LEXER->getSymbolTable().removeTable();
 
     return ptr_ret;
 }

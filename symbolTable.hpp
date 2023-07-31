@@ -96,6 +96,7 @@ class SymbolTable {
         SymInfo* getSymbolInfo(std::string, symType);
         symDatatype getSymDtype(std::string);
         void addTable();
+        void removeTable();
         std::vector<std::unordered_map<std::string, SymInfo*>>& getTable();
         void printAllKeys();
         /* SymbolTable(); */

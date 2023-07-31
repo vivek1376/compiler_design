@@ -86,6 +86,11 @@ void SymbolTable::addTable() {
 }
 
 
+void SymbolTable::removeTable() {
+    vec_symtab.pop_back();
+}
+
+
 /* Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) { */
 Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentScope, SymInfo** p_syminfo) {
 
