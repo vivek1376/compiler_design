@@ -464,7 +464,15 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
             if (srcFile->isEOF()) {
                 return new Token(tokenType::EOFILE, std::string{ch});
             }
+
+            std::cout << "Error [" << LEXER->countnewlines() + 1 << "] : LexicalAnalyzer - "
+                << "Illegal character: "
+                << ch
+                << std::endl;
             // TODO try again ?
+            /* std::runtime_error("lexer error"); */
+            /* std::abort(); */
+            // std::exit(1);
             return new Token(tokenType::INVALID, std::string{ch});
     }
     /* char ch = srcFile.getChar(); */
@@ -522,7 +530,7 @@ int LexicalAnalyzer::getPos() {
 int LexicalAnalyzer::countnewlines() {
 
     int pos = getPos();
-    std::cout << "file pos: " << pos << std::endl;
+    /* std::cout << "file pos: " << pos << std::endl; */
 
     int currpos = 0, num = 0;
 

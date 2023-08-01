@@ -68,7 +68,8 @@ Token* Parser::match(tokenType tt, bool* inCurrentScope, SymInfo** ptr_syminfo) 
                 + tmpTok.getTokenTypeStr()
                 + " / "
                 + tok->getTokenStr(),
-                LEXER->countnewlines());
+                -100);
+                /* LEXER->countnewlines()); */
 
         // tokenType isn't as expected
         tok->setTokenType(tokenType::INVALID);
