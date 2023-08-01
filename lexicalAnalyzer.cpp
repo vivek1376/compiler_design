@@ -100,7 +100,7 @@ void LexicalAnalyzer::addSymbolTable() {
     };
 
     /* std::cout << "IS1" << std::endl; */
-    std::cout << "Adding RWs to symbol table" << std::endl;
+    /* std::cout << "Adding RWs to symbol table" << std::endl; */
     for (auto p: vec_rwToktype) {
         SymInfo *syminfo;
         tok = symTab.lookupTokenString(p.first, nullptr, &syminfo);
@@ -163,7 +163,7 @@ void LexicalAnalyzer::consumeLineComment() {
 
 
 void LexicalAnalyzer::processComments() {
-    prerr("pc_");
+    /* prerr("pc_"); */
     // next char onwards we have line or block comments
     //
     // for line comment read until newline
@@ -177,7 +177,7 @@ void LexicalAnalyzer::processComments() {
     // first process line comments
     if (srcFile->getChar() == '/') {
         consumeLineComment();
-        std::cerr << "h4" << std::endl;
+        /* std::cerr << "h4" << std::endl; */
         // the file pointer is pointing to the first char of the next line
         // after the line comment
         return;
@@ -197,17 +197,17 @@ void LexicalAnalyzer::processComments() {
                  // position in file, use this flag to increment file pos by 1 character
 
     while (srcFile->isgood()) {
-        prerr("pc2");
+        /* prerr("pc2"); */
         ch = srcFile->getChar();
         srcFile->ungetCh();
-        std::cerr << "<" << ch << ">" << std::endl;
+        /* std::cerr << "<" << ch << ">" << std::endl; */
 
         ifInc = true;
 
         if (ifStartBlockComment()) {
             srcFile->getChar();
             srcFile->getChar();
-            prerr("start block");
+            /* prerr("start block"); */
             cnt++;
             ifInc = false;  // since file pos has moved, do not increment explicitly
         }
@@ -215,7 +215,7 @@ void LexicalAnalyzer::processComments() {
         if (ifEndBlockComment()) {
             srcFile->getChar();
             srcFile->getChar();
-            prerr("end block");
+            /* prerr("end block"); */
             cnt--;
             ifInc = false;
         }
@@ -225,7 +225,7 @@ void LexicalAnalyzer::processComments() {
         if (ifInc) srcFile->getChar();  // read a char and discard
     }
 
-    prerr("_pc");
+    /* prerr("_pc"); */
 }
 
 
@@ -316,11 +316,11 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
 
     /* std::cout << "\nch is: [" << ch << "]" << std::endl; */
 
-    std::cout << "\n";
+    /* std::cout << "\n"; */
     Token *tok;
     switch (ch) {
         case '\n':
-            std::cout << "\nsaw newline\n";
+            /* std::cout << "\nsaw newline\n"; */
         // NOTE chars such as / . can be part of something else too. / can be start of a 
         // comment, which is being handled separately outside of this function
         case ';' : case '(' : case ')' : case ',' : case '[' : case ']' : case '_' :
@@ -440,7 +440,7 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
             // unmatched opening quote can lead to infinite loop, so check if reached EOF etc.
             while (ch != '"' && srcFile->isgood()) {
 
-                if (ch == '\r' || ch == '\n') std::cout << "\nsaw newline\n";
+                /* if (ch == '\r' || ch == '\n') std::cout << "\nsaw newline\n"; */
 
                 tokenStr.push_back(ch);
                 ch = srcFile->getChar();
@@ -553,7 +553,7 @@ int LexicalAnalyzer::countnewlines() {
 
 Token* LexicalAnalyzer::getlookahead() {
     int pos = getPos();
-    std::cout << "file pos: " << pos << std::endl;
+    /* std::cout << "file pos: " << pos << std::endl; */
 
     Token *tk = scan(nullptr, nullptr);
 

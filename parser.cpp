@@ -53,7 +53,7 @@ Token* Parser::match(tokenType tt, bool* inCurrentScope, SymInfo** ptr_syminfo) 
     // match token and consume (scan() will advance file pointer)
     Token *tok = lexer->scan(inCurrentScope, ptr_syminfo);
 
-    std::cout << "💎 match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
+    std::cerr << "💎 match() actual str:\t\t" << tok->getTokenStr() + "\t\t"
         + tok->getTokenTypeStr() + "\n";
 
     /* if (nextTok->getTokenType() == tk->getTokenType() && */
@@ -92,7 +92,7 @@ nt_retType::nt_retType() : returnCode{true}, syminfo{new SymInfo()} {}
 nt_retType_program* Parser::parse_program() {
 
     /* currTok = lexer->scan(); */
-    std::cout << "parse_program()" << std::endl;
+    std::cerr << "parse_program()" << std::endl;
 
     nt_retType_program* ptr_ret = new nt_retType_program();
 
@@ -360,10 +360,10 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
             ptr_ret->returnCode = false;
         }
 
-        std::cout << "size is: " << std::dec << size << std::endl;
+        /* std::cout << "size is: " << std::dec << size << std::endl; */
 
         ptr_ret->syminfo = sym_arr;
-        std::cout << "symtype of array: " << ptr_ret->syminfo->symtype << std::endl;
+        /* std::cout << "symtype of array: " << ptr_ret->syminfo->symtype << std::endl; */
         /* ptr_ret->syminfo = sym_arr; */
     }
 
@@ -410,10 +410,10 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     if (symtab_curr->find(proc_name) == symtab_curr->end()){
         throw std::runtime_error("identifier not found in symbol table");
     } else {
-        std::cout << "found identifier in symbol table" << std::endl;
+        /* std::cout << "found identifier in symbol table" << std::endl; */
     }
 
-    std::cout << "SymInfo before: " << (*symtab_curr)[proc_name] << std::endl;
+    /* std::cout << "SymInfo before: " << (*symtab_curr)[proc_name] << std::endl; */
 
     (*symtab_curr)[proc_name] = syminfo_proc;
 
@@ -474,7 +474,7 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
 
     ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
 
-    std::cout << "symbol table map syminfo addr 2: " << (*symtab_curr)[proc_name] << std::endl;
+    /* std::cout << "symbol table map syminfo addr 2: " << (*symtab_curr)[proc_name] << std::endl; */
 
     // now, add new symbol table to store local variables of the procedure
     LEXER->addSymbolTable();
@@ -483,8 +483,8 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     // procedure symbol info
     symtab_curr = &(LEXER->getSymbolTable().getTable()[LEXER->getSymbolTable().getTable().size() - 2]);
 
-    std::cout << "symbol table map syminfo addr 3: " 
-        << (*symtab_curr)[proc_name] << std::endl;
+    /* std::cout << "symbol table map syminfo addr 3: " */ 
+    /*     << (*symtab_curr)[proc_name] << std::endl; */
 
     auto lookahead = lexer->getlookahead();
 
@@ -505,8 +505,8 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
             syminfo_proc->list_param.push_back(
                     paramList->ptr_parameter->ptr_variable_declaration->syminfo);
 
-            std::cout << "param is: " <<
-                syminfo_proc->list_param.back()->getToken()->getTokenStr() << std::endl;
+            /* std::cout << "param is: " << */
+            /*     syminfo_proc->list_param.back()->getToken()->getTokenStr() << std::endl; */
 
             /* if (!paramList->returnCode) ptr_ret->returnCode = false; */
             ptr_ret->returnCode &= paramList->returnCode;
@@ -517,19 +517,19 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
 
 
     // testing dynamic_cast
-    SymInfo *p_s1 = new SymInfo_proc(42);
-    SymInfo_proc *p_s2 = dynamic_cast<SymInfo_proc*>(p_s1);
+    /* SymInfo *p_s1 = new SymInfo_proc(42); */
+    /* SymInfo_proc *p_s2 = dynamic_cast<SymInfo_proc*>(p_s1); */
 
-    std::cout << "dynamic test: " << std::endl;
-    std::cout << "dynamic test: " << p_s2->dummyval << std::endl;
+    /* std::cout << "dynamic test: " << std::endl; */
+    /* std::cout << "dynamic test: " << p_s2->dummyval << std::endl; */
 
-    /* std::cout << "after paramList: " << std::endl; */
+    /* /1* std::cout << "after paramList: " << std::endl; *1/ */
 
-    std::cout << "symbol table map syminfo addr after: " << (*symtab_curr)[proc_name] << std::endl;
+    /* std::cout << "symbol table map syminfo addr after: " << (*symtab_curr)[proc_name] << std::endl; */
 
-    p_s2 = dynamic_cast<SymInfo_proc*>((*symtab_curr)[proc_name]);
-    std::cout << "p_s2 addr: " << p_s2 << std::endl;
-    std::cout << "after paramList: " << p_s2->list_param.size() << std::endl;
+    /* p_s2 = dynamic_cast<SymInfo_proc*>((*symtab_curr)[proc_name]); */
+    /* std::cout << "p_s2 addr: " << p_s2 << std::endl; */
+    /* std::cout << "after paramList: " << p_s2->list_param.size() << std::endl; */
 
     ptr_ret->ptr_tk_rparen = match(tokenType::R_PAREN, nullptr, nullptr);
 
@@ -688,8 +688,8 @@ nt_retType_bound* Parser::parse_bound() {
 
 nt_retType_number* Parser::parse_number() {
 
-    std::cerr << "parsing no." << std::endl;
-    std::cerr << std::endl;
+    /* std::cerr << "parsing no." << std::endl; */
+    /* std::cerr << std::endl; */
 
     auto ptr_ret = new nt_retType_number();
 
@@ -716,8 +716,8 @@ nt_retType_number* Parser::parse_number() {
 
 nt_retType_assignment_statement* Parser::parse_assignment_statement() {
 
-    std::cout << "parse_assignment_statement():\n";
-    std::cout << std::endl;
+    /* std::cout << "parse_assignment_statement():\n"; */
+    /* std::cout << std::endl; */
 
     auto ptr_ret = new nt_retType_assignment_statement();
 
@@ -755,7 +755,7 @@ nt_retType_if_statement* Parser::parse_if_statement() {
     ptr_ret->ptr_expression = parse_expression();
     ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
 
-    std::cout << "IF expr type boolean: " << std::boolalpha << (ptr_ret->ptr_expression->syminfo->symdtype == symDatatype::BOOL_DTYPE) << std::endl;
+    /* std::cout << "IF expr type boolean: " << std::boolalpha << (ptr_ret->ptr_expression->syminfo->symdtype == symDatatype::BOOL_DTYPE) << std::endl; */
     /* std::cout << ptr_ret->ptr_expression->syminfo->symdtype << std::endl; */
 
     if ((ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::BOOL_DTYPE) &&
@@ -1312,10 +1312,10 @@ nt_retType_factor* Parser::parse_factor() {
                     procedureName_SymInfo);
                         /* symType::PROC_SYM)); */
 
-            std::cout << "procedureName_SymInfo: " << procedureName_SymInfo << std::endl;
-            std::cout << "procedureName_SymInfo_proc: " << procedureName_SymInfo_proc << std::endl;
+            /* std::cout << "procedureName_SymInfo: " << procedureName_SymInfo << std::endl; */
+            /* std::cout << "procedureName_SymInfo_proc: " << procedureName_SymInfo_proc << std::endl; */
 
-            std::cout << "proc_name: " << proc_name << std::endl;
+            /* std::cout << "proc_name: " << proc_name << std::endl; */
 
             if (procedureName_SymInfo_proc == nullptr) {
                     /* || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) { */
@@ -1386,15 +1386,16 @@ nt_retType_factor* Parser::parse_factor() {
             /* symDatatype symddd = symDatatype::NOT_FOUND ; */
 
             /* std::cout << "ptr_ret->syminfo: " << ptr_ret->syminfo << std::endl; */
-            std::cout << "variable tokenString: " 
-                << ptr_name->ptr_identifier->ptr_tk_str->getTokenStr() 
-                << std::endl;
+
+            /* std::cout << "variable tokenString: " */ 
+            /*     << ptr_name->ptr_identifier->ptr_tk_str->getTokenStr() */ 
+            /*     << std::endl; */
 
             // now, get the symdtype of the identifier from the symbol table
             ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
                     ptr_name->ptr_identifier->ptr_tk_str->getTokenStr());
 
-            std::cout << "found symdtype\n";
+            /* std::cout << "found symdtype\n"; */
         }
     }
 
@@ -1576,7 +1577,7 @@ symDatatype Parser::verifyCompatibility(tokenType ttype, symDatatype symdtype_le
 
     // TODO check
 
-    std::cout << "verifyCompatibility, types: " << ttype << " " << symdtype_left << " " << symdtype_right << std::endl;
+    std::cerr << "verifyCompatibility, types: " << ttype << " " << symdtype_left << " " << symdtype_right << std::endl;
     // make sure there are no NOT_FOUND's
     if ((symdtype_left == symDatatype::NOT_FOUND) ||
             (symdtype_right == symDatatype::NOT_FOUND)) {

@@ -252,7 +252,7 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
                 /*     new Token(tokenType::IDENTIFIER, tokenStr), */
                 /*     new SymInfo()))); */
 
-    std::cout << "inserted... size of symbol table: " << vec_symtab.back().size() << std::endl;
+    /* std::cout << "inserted... size of symbol table: " << vec_symtab.back().size() << std::endl; */
 
     if (ptr_inCurrentScope) {
         *ptr_inCurrentScope = false;
