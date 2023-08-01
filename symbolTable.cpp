@@ -150,12 +150,13 @@ void SymbolTable::printSymbolTableEntry(const std::pair<std::string, SymInfo*>& 
     /* std::cout << std::endl; */
 
     // do not print RWs
-    if (symtab_entry.second->symtype == symType::RW_SYM) return;
+    if (symtab_entry.second->symtype == symType::RW_SYM 
+            || symtab_entry.second->symtype == symType::NA_SYM) return;
 
-    std::cout << symtab_entry.first << " : ";
+    std::cout << "- " << symtab_entry.first << " : ";
     symtab_entry.second->print();
     /* std::endl; */
-    std::cout << std::endl << std::endl;
+    std::cout << std::endl;
 }
 
 
@@ -163,8 +164,9 @@ void SymbolTable::printSymbolTable() {
     // print lat symbolTable in the vector
 
     /* std::cout << "\n\n=====================\n"; */
-    std::cout << "\n\nPrinting popped out Symbol Table\n";
-    std::cout << "#################################\n\n";
+    std::cout << "------------------------\n";
+    std::cout << "Popped out Symbol Table:\n";
+    std::cout << "------------------------\n";
 
     auto map_symtab = vec_symtab.back();
 
@@ -173,7 +175,8 @@ void SymbolTable::printSymbolTable() {
         /* std::cout << std::endl; */
     }
 
-    std::cout << "\n###############################\n\n";
+    std::cout << std::endl << std::endl;
+    /* std::cout << "\n-------------------------------\n\n"; */
 }
 
 
