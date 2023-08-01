@@ -669,7 +669,7 @@ nt_retType_bound* Parser::parse_bound() {
 
     if (ptr_ret->syminfo->symdtype != symDatatype::INT_DTYPE) {
         ptr_ret->returnCode = false;
-        logger->reportError("Bound must be integer type");
+        logger->reportError("Bound value must be integer type");
     }
 
     return ptr_ret;
@@ -723,6 +723,10 @@ nt_retType_assignment_statement* Parser::parse_assignment_statement() {
             ptr_ret->ptr_expression->syminfo->symdtype);
 
     ptr_ret->returnCode &= (ptr_ret->syminfo->symdtype != symDatatype::INVALID_DTYPE);
+    if (ptr_ret->syminfo->symdtype == symDatatype::INVALID_DTYPE) {
+        logger->reportError(std::string("Assignment type mismatch for destination: " 
+                    + ptr_ret->ptr_destination->ptr_identifier->ptr_tk_str->getTokenStr()));
+    }
 
     return ptr_ret;
 }
@@ -739,8 +743,8 @@ nt_retType_if_statement* Parser::parse_if_statement() {
     ptr_ret->ptr_expression = parse_expression();
     ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
 
-    std::cout << "if expr type: " << std::boolalpha << (ptr_ret->ptr_expression->syminfo->symdtype == symDatatype::BOOL_DTYPE) << std::endl;
-    std::cout << ptr_ret->ptr_expression->syminfo->symdtype << std::endl;
+    std::cout << "IF expr type boolean: " << std::boolalpha << (ptr_ret->ptr_expression->syminfo->symdtype == symDatatype::BOOL_DTYPE) << std::endl;
+    /* std::cout << ptr_ret->ptr_expression->syminfo->symdtype << std::endl; */
 
     if ((ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::BOOL_DTYPE) &&
             (ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE)) {
@@ -1133,8 +1137,8 @@ nt_retType_factor* Parser::parse_factor() {
     /* ptr_ret->syminfo = new SymInfo(); */
 
     Token* lookahead = lexer->getlookahead();
-    std::cout << "🔔 lookahead is :" << lookahead->getTokenStr() << "\ttype: " <<
-        lookahead->getTokenTypeStr() << std::endl;
+    /* std::cout << "🔔 lookahead is :" << lookahead->getTokenStr() << "\ttype: " << */
+    /*     lookahead->getTokenTypeStr() << std::endl; */
 
     if (lookahead->getTokenType() == tokenType::L_PAREN) {  // handle (expression)
         ptr_ret->ptr_tk_lparen = match(tokenType::L_PAREN, nullptr, nullptr);
@@ -1524,6 +1528,7 @@ symDatatype Parser::verifyCompatibility(tokenType ttype, symDatatype symdtype_le
 
     // TODO check
 
+    std::cout << "verifyCompatibility, types: " << symdtype_left << " " << symdtype_right << std::endl;
     // make sure there are no NOT_FOUND's
     if ((symdtype_left == symDatatype::NOT_FOUND) ||
             (symdtype_right == symDatatype::NOT_FOUND)) {
@@ -1557,7 +1562,8 @@ symDatatype Parser::verifyCompatibility(tokenType ttype, symDatatype symdtype_le
         }
     }
 
-    if ((ttype == tokenType::LESS_THAN) || (ttype == tokenType::GREATER_EQUAL) 
+    if ((ttype == tokenType::LESS_THAN)
+            || (ttype == tokenType::GREATER_EQUAL) 
             || (ttype == tokenType::LESS_EQUAL)
             || (ttype == tokenType::GREATER_THAN) 
             || (ttype == tokenType::EQUALS)
@@ -1622,6 +1628,32 @@ symDatatype Parser::verifyCompatibility(tokenType ttype, symDatatype symdtype_le
         } else {
             return symDatatype::INVALID_DTYPE;
         }
+    }
+
+    if (ttype == tokenType::ASSIGN_OP) {
+        if (symdtype_left == symdtype_right) return symdtype_left;
+
+        if ((symdtype_left == symDatatype::BOOL_DTYPE) 
+                && (symdtype_right == symDatatype::INT_DTYPE)) {
+            return symdtype_left;
+        }
+
+        if ((symdtype_left == symDatatype::INT_DTYPE) 
+                && (symdtype_right == symDatatype::BOOL_DTYPE)) {
+            return symdtype_left;
+        }
+
+        if ((symdtype_left == symDatatype::INT_DTYPE) 
+                && (symdtype_right == symDatatype::FLOAT_DTYPE)) {
+            return symdtype_left;
+        }
+
+        if ((symdtype_left == symDatatype::FLOAT_DTYPE) 
+                && (symdtype_right == symDatatype::INT_DTYPE)) {
+            return symdtype_left;
+        }
+
+        return symDatatype::INVALID_DTYPE;
     }
 
     if (ttype == tokenType::UNKNOWN) {

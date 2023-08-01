@@ -4,12 +4,14 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 
 class inFile {
     private:
         std::ifstream srcFile;
         std::string fileName;
-        int lineCnt = 0;  // the line count; initialized to zero
+        /* int lineCnt = 0;  // the line count; initialized to zero */
+        int lineCnt;  // the line count
 
     public:
         inFile() = delete;
@@ -32,8 +34,7 @@ class inFile {
 
         void setPos(int);
 
-        void incLineCnt() {
-        }
+        void incLineCnt();
 
         void ungetCh();
 

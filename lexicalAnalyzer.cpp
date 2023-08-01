@@ -262,6 +262,9 @@ bool LexicalAnalyzer::isWhitespace() {
 
     // TODO just return directly
     if (std::isspace(ch)) {
+        /* std::cout << "\nisspace true\n"; */
+        /* if (ch == '\r'|| ch == '\n') std::cout << "\nsaw newline\n"; */
+
         /* prerr("yes_space"); */
         return true;
     } else {
@@ -316,6 +319,8 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
     std::cout << "\n";
     Token *tok;
     switch (ch) {
+        case '\n':
+            std::cout << "\nsaw newline\n";
         // NOTE chars such as / . can be part of something else too. / can be start of a 
         // comment, which is being handled separately outside of this function
         case ';' : case '(' : case ')' : case ',' : case '[' : case ']' : case '_' :
@@ -434,6 +439,9 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
             // TODO permit " in string ?
             // unmatched opening quote can lead to infinite loop, so check if reached EOF etc.
             while (ch != '"' && srcFile->isgood()) {
+
+                if (ch == '\r' || ch == '\n') std::cout << "\nsaw newline\n";
+
                 tokenStr.push_back(ch);
                 ch = srcFile->getChar();
             }

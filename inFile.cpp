@@ -22,9 +22,11 @@ inFile::inFile(std::string fileName)
     : fileName{fileName} {
         /* this.fileName = fileName; */
         srcFile.open(fileName, std::ios_base::in);
+        lineCnt = 0;
     }
 
 void inFile::ungetCh() {
+    /* std::cout << "\n\nunget file pos\n"; */
     srcFile.unget();
 }
 
@@ -43,6 +45,11 @@ void inFile::clear() {
 }
 
 void inFile::setPos(int pos) {
+    /* std::cout << "\n\nsetting file pos\n"; */
     clear();
     srcFile.seekg(pos);
+}
+
+void inFile::incLineCnt() {
+    /* std::cout << "\nincrement line count\n"; */
 }

@@ -24,11 +24,11 @@ SymInfo::SymInfo(Token* token, symType symtype, symDatatype symdtype) {
 
 SymInfo::SymInfo(const SymInfo& that) {
     /* tok = new Token(); */
-    std::cout << "syminfo copy constructor called" << std::endl;
-    std::cout << "that.tok addr: " << std::hex << that.tok << std::endl;
-    std::cout << "copying token in syminfo\n";
+    /* std::cout << "syminfo copy constructor called" << std::endl; */
+    /* std::cout << "that.tok addr: " << std::hex << that.tok << std::endl; */
+    /* std::cout << "copying token in syminfo\n"; */
     tok = new Token(*that.tok);  // just make shallow copy by invoking default copy constructor
-    std::cout << "after Token copy" << std::endl;
+    /* std::cout << "after Token copy" << std::endl; */
 
     /* tok = new Token(); */
     symtype = that.symtype;
@@ -41,6 +41,9 @@ Token* SymInfo::getToken() {
 }
 
 void SymInfo::print() {
+
+    /* if (symdtype == symDatatype::NOT_FOUND) return; */
+
     switch (symtype) {
         case symType::VAR_SYM:
             std::cout << "variable";
@@ -55,7 +58,7 @@ void SymInfo::print() {
             std::cout << "array";
             break;
         default:
-            std::cout << "symtype_unknown";
+            std::cout << "UNKNOWN";
     }
 
     std::cout << " : type ";
@@ -79,10 +82,10 @@ void SymInfo::print() {
             std::cout << "N/A";
             break;
         case symDatatype::NOT_FOUND:
-            std::cout << "UNDECLARED!";
+            std::cout << "UNKNOWN";
             break;
         default:
-            std::cout << "UNKNOWN";
+            std::cout << "----";
     }
 
     /* std::cout << std::endl; */
@@ -94,7 +97,7 @@ void SymInfo::print() {
 
 
 SymInfo_array::SymInfo_array(const SymInfo& that) : SymInfo(that) {
-    std::cout << "Syminfo_array copy called" << std::endl;
+    /* std::cout << "Syminfo_array copy from Syminfo called" << std::endl; */
 }
 
 
@@ -237,7 +240,7 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
     /* map_symTab.insert(std::make_pair(tokenStr, */ 
     /*             new Token(tokenType::IDENTIFIER, tokenStr))); */
 
-    std::cout << "inserting... tokenStr: " << tokenStr << std::endl;
+    /* std::cout << "inserting... tokenStr: " << tokenStr << std::endl; */
     vec_symtab.back().insert(std::make_pair(tokenStr, 
                 new SymInfo(
                     new Token(tokenType::IDENTIFIER, tokenStr),
