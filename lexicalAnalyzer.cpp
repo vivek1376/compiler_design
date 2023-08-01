@@ -23,7 +23,7 @@ void LexicalAnalyzer::runLexer() {
 
     while (srcFile->isgood()) {
         std::cerr << "scanning..." << std::endl;
-        auto tok = scan(nullptr, nullptr);
+        auto tok = scan(nullptr, nullptr, false);
         tok->printToken();
     }
 
@@ -103,7 +103,7 @@ void LexicalAnalyzer::addSymbolTable() {
     /* std::cout << "Adding RWs to symbol table" << std::endl; */
     for (auto p: vec_rwToktype) {
         SymInfo *syminfo;
-        tok = symTab.lookupTokenString(p.first, nullptr, &syminfo);
+        tok = symTab.lookupTokenString(p.first, nullptr, &syminfo, false);
         /* std::cout << "IS2" << std::endl; */
         tok->setTokenType(p.second);
         syminfo->symtype = symType::RW_SYM;
@@ -274,7 +274,7 @@ bool LexicalAnalyzer::isWhitespace() {
 }
 
 
-Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo) {
+Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo, bool isGlobal) {
 
     /* SymbolTable symTab; */
 
@@ -294,7 +294,7 @@ Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo) {
     }
 
     // TODO check isgood() ?
-    return buildToken(inCurrentScope, ptr_syminfo);
+    return buildToken(inCurrentScope, ptr_syminfo, isGlobal);
 }
 
 
@@ -303,7 +303,8 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
 }
 
 /* Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) { */
-Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_syminfo) {
+Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_syminfo,
+        bool isGlobal) {
 
     /* prerr("LEXER::buildToken"); */
 
@@ -422,7 +423,8 @@ Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_symin
             // identifier
             /* std::cout << "going to lookup..\n"; */
             /* std::cout << "buildToken() - calling lookupTokenStr" << std::endl; */
-            return symTab.lookupTokenString(tokenStr, ptr_inCurrentScope, ptr_syminfo);
+            return symTab.lookupTokenString(tokenStr, ptr_inCurrentScope, ptr_syminfo,
+                    isGlobal);
                                                         // lookup..() creates IDENTIFIER token 
                                                         // by default ?
             /* tok->setTokenType(tokenType::PROGRAM_RW); */
@@ -555,7 +557,7 @@ Token* LexicalAnalyzer::getlookahead() {
     int pos = getPos();
     /* std::cout << "file pos: " << pos << std::endl; */
 
-    Token *tk = scan(nullptr, nullptr);
+    Token *tk = scan(nullptr, nullptr, false);
 
     // resetting ?
     setinFilepos(pos);

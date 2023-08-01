@@ -193,7 +193,7 @@ void SymbolTable::removeTable() {
 
 
 /* Token* SymbolTable::lookupTokenString(std::string tokenStr, SymbolScopeInfo *symscopeinfo) { */
-Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentScope, SymInfo** p_syminfo) {
+Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentScope, SymInfo** p_syminfo, bool isGlobal) {
 
     // lookup in current scope, insert if not present in current scope
     // NOTE symbol table only stores identifiers
@@ -201,6 +201,42 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
     int numScopes = vec_symtab.size();
     // int scopeDepth = 0;
     std::cerr << "numscopes: " << numScopes << std::endl;
+
+    if (isGlobal) {
+
+        if (vec_symtab.front().find(tokenStr) != vec_symtab.front().end()) {
+            if (ptr_inCurrentScope) {
+                *ptr_inCurrentScope = true;
+            }
+
+            if (p_syminfo) *p_syminfo = vec_symtab.front().find(tokenStr)->second;
+
+            return vec_symtab.front().find(tokenStr)->second->getToken();
+
+        } else {
+
+            vec_symtab.front().insert(std::make_pair(tokenStr, 
+                        new SymInfo(
+                            new Token(tokenType::IDENTIFIER, tokenStr),
+                            symType::NA_SYM,
+                            symDatatype::NOT_FOUND
+                            )));
+
+            /* new Tokeninfo( */
+            /*     new Token(tokenType::IDENTIFIER, tokenStr), */
+            /*     new SymInfo()))); */
+
+            /* std::cout << "inserted... size of symbol table: " << vec_symtab.back().size() << std::endl; */
+
+            if (ptr_inCurrentScope) {
+                *ptr_inCurrentScope = false;
+            }
+
+            if (p_syminfo) *p_syminfo = vec_symtab.front().find(tokenStr)->second;
+
+            return vec_symtab.front().find(tokenStr)->second->getToken();
+        }
+    }
 
     if (vec_symtab.back().find(tokenStr) != vec_symtab.back().end()) {
         std::cerr << "inside\n" << std::endl;

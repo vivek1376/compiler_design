@@ -91,7 +91,7 @@ class SymbolTable {
         /* std::unordered_map<std::string, Token*> map_symTab; */
 
     public:
-        Token* lookupTokenString(std::string, bool*, SymInfo**);
+        Token* lookupTokenString(std::string, bool*, SymInfo**, bool);
 
         void printTable();
         SymInfo* getSymbolInfo(std::string, symType);
