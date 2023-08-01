@@ -518,8 +518,34 @@ int LexicalAnalyzer::getPos() {
     return srcFile->getPos();
 }
 
+
+int LexicalAnalyzer::countnewlines() {
+
+    int pos = getPos();
+    std::cout << "file pos: " << pos << std::endl;
+
+    int currpos = 0, num = 0;
+
+    setinFilepos(++currpos);
+
+    while (getPos() != pos) {
+        char ch = srcFile->getChar();
+
+        if (ch == '\n') num++;
+
+        setinFilepos(++currpos);
+    }
+
+    // resetting ?
+    setinFilepos(pos);
+
+    return num;
+}
+
+
 Token* LexicalAnalyzer::getlookahead() {
     int pos = getPos();
+    std::cout << "file pos: " << pos << std::endl;
 
     Token *tk = scan(nullptr, nullptr);
 

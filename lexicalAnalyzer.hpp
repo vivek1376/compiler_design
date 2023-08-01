@@ -45,6 +45,7 @@ class LexicalAnalyzer {
         Token* getlookahead();
         int getPos();
         void setinFilepos(int pos);
+        int countnewlines();
 
     private:
         static LexicalAnalyzer* instance_;

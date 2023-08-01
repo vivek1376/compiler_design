@@ -13,7 +13,7 @@ class Reporting {
 
     public:
         Reporting();
-        void reportError(std::string message);
+        void reportError(std::string, int);
         void reportWarning(std::string message);
         bool getErrorStatus();
         static Reporting* getInstance();

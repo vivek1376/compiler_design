@@ -20,6 +20,9 @@ Reporting* Reporting::getInstance() {
 void Reporting::reportWarning(std::string msg) {
     std::cout << "Warning: " << msg << std::endl;
 }
-void Reporting::reportError(std::string msg) {
-    std::cout << "Error: " << msg << std::endl;
+void Reporting::reportError(std::string msg, int num) {
+    std::cout << "Error [line " << (num + 1)
+        << "] : "
+        << msg 
+        << std::endl;
 }

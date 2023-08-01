@@ -67,7 +67,8 @@ Token* Parser::match(tokenType tt, bool* inCurrentScope, SymInfo** ptr_syminfo) 
         logger->reportError("token not matched - expected type / actual: " 
                 + tmpTok.getTokenTypeStr()
                 + " / "
-                + tok->getTokenStr());
+                + tok->getTokenStr(),
+                LEXER->countnewlines());
 
         // tokenType isn't as expected
         tok->setTokenType(tokenType::INVALID);
@@ -198,7 +199,8 @@ nt_retType_declaration* Parser::parse_declaration() {
     } else {
         ptr_ret->returnCode = false;
         logger->reportError("error in parser_declaration(), lookahead_str: "
-                + lookahead->getTokenStr());
+                + lookahead->getTokenStr(),
+                LEXER->countnewlines());
         /* throw std::runtime_error("error in parser_declaration(), lookahead_str: " */
         /*         + lookahead->getTokenStr()); */
     }
@@ -264,7 +266,8 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     ptr_ret->ptr_tk_variable = match(tokenType::VARIABLE_RW, nullptr, nullptr);  // TODO add ret value check for invalid token ?
     // check
     if (ptr_ret->ptr_tk_variable->getTokenType() == tokenType::INVALID) {
-        logger->reportError("VARIABLE_RW not found!");
+        logger->reportError("VARIABLE_RW not found!",
+                LEXER->countnewlines());
         ptr_ret->returnCode = false;
     }
 
@@ -274,7 +277,8 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
 
     // check
     if (!ptr_ret->ptr_identifier->returnCode) {
-        logger->reportError("Identifier parse error");
+        logger->reportError("Identifier parse error",
+                LEXER->countnewlines());
         ptr_ret->returnCode = false;
     }
 
@@ -285,7 +289,8 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
     // check duplicate
     if (inCurrentScope) {
         logger->reportError("Duplicate symbol declaration: " 
-                + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr());
+                + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr(),
+                LEXER->countnewlines());
         ptr_ret->returnCode = false;
 
         return ptr_ret;
@@ -341,14 +346,16 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
             size = std::stoi(ptr_ret->ptr_bound->ptr_number->ptr_tk_number->getTokenStr());
         } catch (const std::exception &e) {
             std::cout << "can't convert size" << std::endl;
-            logger->reportError("can't convert size");
+            logger->reportError("can't convert size",
+                    LEXER->countnewlines());
             ptr_ret->returnCode = false;
         }
 
         sym_arr->size = size;
 
         if (sym_arr->size <= 0) {
-            logger->reportError("size should be a positive integer");
+            logger->reportError("size should be a positive integer",
+                    LEXER->countnewlines());
             ptr_ret->returnCode = false;
         }
 
@@ -415,7 +422,8 @@ nt_retType_procedure_header* Parser::parse_procedure_header(SymInfo_proc* syminf
     // check duplicate
     if (inCurrentScope) {
         logger->reportError("Duplicate procedure name symbol declaration: "
-                            + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr());
+                + ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr(),
+                LEXER->countnewlines());
         ptr_ret->returnCode = false;
 
         return ptr_ret;
@@ -669,7 +677,8 @@ nt_retType_bound* Parser::parse_bound() {
 
     if (ptr_ret->syminfo->symdtype != symDatatype::INT_DTYPE) {
         ptr_ret->returnCode = false;
-        logger->reportError("Bound value must be integer type");
+        logger->reportError("Bound value must be integer type",
+                LEXER->countnewlines());
     }
 
     return ptr_ret;
@@ -694,7 +703,8 @@ nt_retType_number* Parser::parse_number() {
     } else {
         ptr_ret->returnCode = false;
         std::cout << "lookahead type: " << lookahead->getTokenTypeStr() << std::endl;
-        logger->reportError("can't parse number, actual string: " + lookahead->getTokenStr());
+        logger->reportError("can't parse number, actual string: " + lookahead->getTokenStr(),
+                LEXER->countnewlines());
 
         /* ptr_ret->ptr_tk_number = lexer->scan(nullptr, nullptr); */  // TODO why added this?
     }
@@ -725,7 +735,8 @@ nt_retType_assignment_statement* Parser::parse_assignment_statement() {
     ptr_ret->returnCode &= (ptr_ret->syminfo->symdtype != symDatatype::INVALID_DTYPE);
     if (ptr_ret->syminfo->symdtype == symDatatype::INVALID_DTYPE) {
         logger->reportError(std::string("Assignment type mismatch for destination: " 
-                    + ptr_ret->ptr_destination->ptr_identifier->ptr_tk_str->getTokenStr()));
+                    + ptr_ret->ptr_destination->ptr_identifier->ptr_tk_str->getTokenStr()),
+                LEXER->countnewlines());
     }
 
     return ptr_ret;
@@ -749,7 +760,8 @@ nt_retType_if_statement* Parser::parse_if_statement() {
     if ((ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::BOOL_DTYPE) &&
             (ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE)) {
         ptr_ret->returnCode = false;
-        logger->reportError("IF expression must evaluate to boolean");
+        logger->reportError("IF expression must evaluate to boolean",
+                LEXER->countnewlines());
         /* ptr_ret->syminfo->symdtype = symDatatype::INVALID_DTYPE; */
     }
 
@@ -904,7 +916,8 @@ nt_retType_destination* Parser::parse_destination() {
         ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
 
         if (ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE) {
-            logger->reportError("Array index must be integer type");
+            logger->reportError("Array index must be integer type",
+                    LEXER->countnewlines());
             ptr_ret->returnCode = false;
         }
 
@@ -956,7 +969,8 @@ nt_retType_expression* Parser::parse_expression() {
     }
 
     if (ptr_ret->syminfo->symdtype == symDatatype::INVALID_DTYPE) {
-        logger->reportError("Invalid expression");
+        logger->reportError("Invalid expression",
+                LEXER->countnewlines());
     }
             /*         ptr_ret->syminfo->symdtype = verifyCompatibility(tokenType::NOT_RW, */ 
             /*                 verifyCompatibility(tokenType::NOT_RW, */ 
@@ -1252,7 +1266,8 @@ nt_retType_factor* Parser::parse_factor() {
 
             // verify that expression is int
             if (ptr_ret->ptr_name->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE) {
-                logger->reportError("array index is not INT type");
+                logger->reportError("array index is not INT type",
+                        LEXER->countnewlines());
             }
 
             // now, get the symdtype of the identifier from the symbol table
@@ -1304,7 +1319,8 @@ nt_retType_factor* Parser::parse_factor() {
             if (procedureName_SymInfo_proc == nullptr) {
                     /* || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) { */
                 logger->reportError(std::string("Procedure '" + proc_name 
-                            + "' not declared"));
+                            + "' not declared"),
+                        LEXER->countnewlines());
                 /* LEXER->getSymbolTable().getTable().back()[proc_name]->symtype = symType::PROC_SYM; */
                 /* procedureName_SymInfo->symtype = symType::PROC_SYM; */
             } else {
@@ -1316,7 +1332,8 @@ nt_retType_factor* Parser::parse_factor() {
                 if (procedureName_SymInfo_proc->symtype != symType::PROC_SYM) {
                     /* throw std::runtime_error("Procedure name not found in symbol table" ); */
                     logger->reportError(std::string("Procedure '" + proc_name 
-                                + "' not declared"));
+                                + "' not declared"),
+                            LEXER->countnewlines());
                 }
 
                 // build a vector of SymInfo* from argList
@@ -1336,12 +1353,14 @@ nt_retType_factor* Parser::parse_factor() {
                 if (procedureName_SymInfo_proc) {
                     if (vec_procedure_call_argList_SymInfo.size() != 
                             procedureName_SymInfo_proc->list_param.size()) {
-                        logger->reportError("Procedure call argument list length mismatch");
+                        logger->reportError("Procedure call argument list length mismatch",
+                                LEXER->countnewlines());
                     } else {
                         for (int i = 0; i < vec_procedure_call_argList_SymInfo.size(); i++) {
                             if (vec_procedure_call_argList_SymInfo[i]->symdtype !=
                                     procedureName_SymInfo_proc->list_param[i]->symdtype) {
-                                logger->reportError("Procedure call arg type mismatch");
+                                logger->reportError("Procedure call arg type mismatch",
+                                        LEXER->countnewlines());
                                 ptr_ret->returnCode = false;
                                 break;
                             }
@@ -1530,7 +1549,8 @@ nt_retType_name* Parser::parse_name() {
         ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
 
         if (ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE) {
-            logger->reportError("<expression should evaluate to integer in parse_name");
+            logger->reportError("<expression should evaluate to integer in parse_name",
+                    LEXER->countnewlines());
         }
 
         ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr, nullptr);
