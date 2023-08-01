@@ -104,7 +104,7 @@ class Token {
     public:
 
         Token() = delete;  // TODO why?
-        /* Token(const Token&) = default; */
+        Token(const Token&) = default;  // see https://stackoverflow.com/a/51406148/9894266
 
         Token(tokenType ttype, std::string tokenStr);
         /* Token(tokenType ttype, Token* tok) { */

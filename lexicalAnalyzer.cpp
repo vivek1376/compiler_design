@@ -99,14 +99,16 @@ void LexicalAnalyzer::addSymbolTable() {
         {"false", tokenType::FALSE_RW}
     };
 
-    std::cout << "IS1" << std::endl;
+    /* std::cout << "IS1" << std::endl; */
+    std::cout << "Adding RWs to symbol table" << std::endl;
     for (auto p: vec_rwToktype) {
-        std::cout << "calling lookupTokenString() for RWs" << std::endl;
-        tok = symTab.lookupTokenString(p.first, nullptr, nullptr);
-        std::cout << "IS2" << std::endl;
+        SymInfo *syminfo;
+        tok = symTab.lookupTokenString(p.first, nullptr, &syminfo);
+        /* std::cout << "IS2" << std::endl; */
         tok->setTokenType(p.second);
+        syminfo->symtype = symType::RW_SYM;
 
-        std::cout << "IS3" << std::endl;
+        /* std::cout << "IS3" << std::endl; */
         /* tok->printTokenString(); */
         /* tok->setTokenType(tokenType:: */
     }

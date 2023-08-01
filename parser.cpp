@@ -116,7 +116,9 @@ nt_retType_program_header* Parser::parse_program_header() {
 
     ptr_ret->ptr_identifier = parse_identifier(nullptr);
     ptr_ret->returnCode &= ptr_ret->ptr_identifier->returnCode;
-    ptr_ret->ptr_identifier->syminfo->symtype = symType::OTHERS_SYM;  // TODO add enum PROG_SYM?
+
+    ptr_ret->ptr_identifier->syminfo->symtype = symType::PROG_SYM;
+    ptr_ret->ptr_identifier->syminfo->symdtype = symDatatype::NA_DTYPE;
                                                                  
     ptr_ret->ptr_tk_is = match(tokenType::IS_RW, nullptr, nullptr);
 
@@ -303,20 +305,26 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
         syminfo->symdtype = symDatatype::BOOL_DTYPE;
     }
 
+    // also set symtype
+    syminfo->symtype = symType::VAR_SYM;
 
-    ptr_ret->ptr_tk_lbkt = nullptr;
-    ptr_ret->ptr_tk_rbkt = nullptr;
-    ptr_ret->ptr_bound = nullptr;
+/*     ptr_ret->ptr_tk_lbkt = nullptr; */
+/*     ptr_ret->ptr_tk_rbkt = nullptr; */
+/*     ptr_ret->ptr_bound = nullptr; */
 
     Token* lookahead = lexer->getlookahead();
 
-    // TODO delete whichRUle from this class
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
         /* SymInfo_array *sym_arr = static_cast<SymInfo_array*>(&syminfo); */
         /* SymInfo_array *sym_arr = new SymInfo_array(dynamic_cast<const SymInfo_array&>(syminfo)); */
 
         // create new syminfo_arr; we can't simply cast syminfo returned by parse_identifier
         auto sym_arr = new SymInfo_array(*syminfo);
+        sym_arr->symtype = symType::ARR_SYM;
+
+        auto arr_name = ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr();
+
+        LEXER->getSymbolTable().getTable().back()[arr_name] = sym_arr;
 
         // TODO delete syminfo ?
 
@@ -344,9 +352,10 @@ nt_retType_variable_declaration* Parser::parse_variable_declaration() {
             ptr_ret->returnCode = false;
         }
 
-        std::cout << "size is: " << size << std::endl;
+        std::cout << "size is: " << std::dec << size << std::endl;
 
         ptr_ret->syminfo = sym_arr;
+        std::cout << "symtype of array: " << ptr_ret->syminfo->symtype << std::endl;
         /* ptr_ret->syminfo = sym_arr; */
     }
 
@@ -1264,55 +1273,68 @@ nt_retType_factor* Parser::parse_factor() {
             /*         symType::PROC_SYM); */
             /* std::cout << "proc SymInfo retreived: " << procedure_decl_SymInfo << std::endl; */
             // get symbol info for this procedure name
-            SymInfo_proc* procedure_decl_SymInfo_proc = dynamic_cast<SymInfo_proc*>(
-                    LEXER->getSymbolTable().getSymbolInfo(proc_name, 
-                        symType::PROC_SYM));
+            SymInfo* procedureName_SymInfo = LEXER->getSymbolTable().getSymbolInfo(proc_name, 
+                    symType::PROC_SYM);
+            SymInfo_proc* procedureName_SymInfo_proc = dynamic_cast<SymInfo_proc*>(
+                    procedureName_SymInfo);
+                        /* symType::PROC_SYM)); */
 
-            /* auto syminfo_proc_symtable = ( */
-            /*         LEXER->getSymbolTable().getSymbolInfo( */
-            /*             ptr_ret->ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr())); */
-            std::cout << "syminfo_proc_symtable: " << procedure_decl_SymInfo_proc << std::endl;
+            std::cout << "procedureName_SymInfo: " << procedureName_SymInfo << std::endl;
+            std::cout << "procedureName_SymInfo_proc: " << procedureName_SymInfo_proc << std::endl;
 
-            if (procedure_decl_SymInfo_proc == nullptr) {
+            std::cout << "proc_name: " << proc_name << std::endl;
+
+            if (procedureName_SymInfo_proc == nullptr) {
                     /* || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) { */
-                /* throw std::runtime_error("Procedure name not found in symbol table" ); */
                 logger->reportError(std::string("Procedure '" + proc_name 
                             + "' not declared"));
-            }
+                LEXER->getSymbolTable().getTable().back()[proc_name]->symtype = symType::PROC_SYM;
+                /* procedureName_SymInfo->symtype = symType::PROC_SYM; */
+            } else {
 
-            // build a vector of SymInfo* from argList
-            std::vector<SymInfo*> vec_procedure_call_argList_SymInfo;
+                // TODO add this in declaration
+                /* procedureName_SymInfo_proc->symtype = symType::PROC_SYM; */
 
-            nt_retType_argument_list *argList = ptr_ret->ptr_procedure_call->ptr_argument_list;
+                /* if ((procedureName_SymInfo_proc->symdtype == symDatatype::NOT_FOUND) */
+                if (procedureName_SymInfo_proc->symtype != symType::PROC_SYM) {
+                    /* throw std::runtime_error("Procedure name not found in symbol table" ); */
+                    logger->reportError(std::string("Procedure '" + proc_name 
+                                + "' not declared"));
+                }
 
-            while (argList) {
-                vec_procedure_call_argList_SymInfo.push_back(
-                        argList->ptr_expression->syminfo);
+                // build a vector of SymInfo* from argList
+                std::vector<SymInfo*> vec_procedure_call_argList_SymInfo;
 
-                ptr_ret->returnCode &= argList->returnCode;
+                nt_retType_argument_list *argList = ptr_ret->ptr_procedure_call->ptr_argument_list;
 
-                argList = argList->ptr_argument_list;
-            }
+                while (argList) {
+                    vec_procedure_call_argList_SymInfo.push_back(
+                            argList->ptr_expression->syminfo);
 
-            if (procedure_decl_SymInfo_proc) {
-                if (vec_procedure_call_argList_SymInfo.size() != 
-                        procedure_decl_SymInfo_proc->list_param.size()) {
-                    logger->reportError("Procedure call argument list length mismatch");
-                } else {
-                    for (int i = 0; i < vec_procedure_call_argList_SymInfo.size(); i++) {
-                        if (vec_procedure_call_argList_SymInfo[i]->symdtype !=
-                                procedure_decl_SymInfo_proc->list_param[i]->symdtype) {
-                            logger->reportError("Procedure call arg type mismatch");
-                            ptr_ret->returnCode = false;
-                            break;
+                    ptr_ret->returnCode &= argList->returnCode;
+
+                    argList = argList->ptr_argument_list;
+                }
+
+                if (procedureName_SymInfo_proc) {
+                    if (vec_procedure_call_argList_SymInfo.size() != 
+                            procedureName_SymInfo_proc->list_param.size()) {
+                        logger->reportError("Procedure call argument list length mismatch");
+                    } else {
+                        for (int i = 0; i < vec_procedure_call_argList_SymInfo.size(); i++) {
+                            if (vec_procedure_call_argList_SymInfo[i]->symdtype !=
+                                    procedureName_SymInfo_proc->list_param[i]->symdtype) {
+                                logger->reportError("Procedure call arg type mismatch");
+                                ptr_ret->returnCode = false;
+                                break;
+                            }
                         }
                     }
                 }
-            }
 
-            // now, get the symdtype of the identifier from the symbol table
-            ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
-                    ptr_procedure_call->ptr_identifier->ptr_tk_str->getTokenStr());
+                // now, get the symdtype of the identifier from the symbol table
+                ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(proc_name);
+            }
         } else {
             // handle <identifier>
             ptr_name = new nt_retType_name();
@@ -1505,7 +1527,8 @@ symDatatype Parser::verifyCompatibility(tokenType ttype, symDatatype symdtype_le
     // make sure there are no NOT_FOUND's
     if ((symdtype_left == symDatatype::NOT_FOUND) ||
             (symdtype_right == symDatatype::NOT_FOUND)) {
-        throw std::runtime_error("NOT_FOUND symDatatype");
+        return symDatatype::NOT_FOUND;
+        /* throw std::runtime_error("NOT_FOUND symDatatype"); */
     }
 
     if ((symdtype_left == symDatatype::INVALID_DTYPE) ||

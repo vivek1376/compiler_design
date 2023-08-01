@@ -9,10 +9,10 @@
 #include "token.hpp"
 
 // PROG_SYM for whole program?
-enum symType {VAR_SYM, PROC_SYM, PROG_SYM, CONST_SYM, OTHERS_SYM, NA_SYM};
+enum symType {VAR_SYM, ARR_SYM, PROC_SYM, PROG_SYM, CONST_SYM, RW_SYM, OTHERS_SYM, NA_SYM};
 
 // NA_DTYPE is for epsilon rule
-enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, ARRAY_DTYPE, NA_DTYPE, NOT_FOUND, 
+enum symDatatype {INT_DTYPE, FLOAT_DTYPE, STR_DTYPE, BOOL_DTYPE, /* ARRAY_DTYPE, */ NA_DTYPE, NOT_FOUND, 
     INVALID_DTYPE};
 
 class SymInfo {
@@ -50,6 +50,7 @@ class SymInfo_array : public SymInfo {
     public:  // TODO change to private, and add getter/setter
         int size;
 
+        void print() override;
         explicit SymInfo_array(const SymInfo& that);
         /* SymInfo_array(const SymInfo_array& that); */
 };
@@ -94,7 +95,10 @@ class SymbolTable {
 
         void printTable();
         SymInfo* getSymbolInfo(std::string, symType);
+        /* SymInfo* getSymbolInfo(std::string); */
         symDatatype getSymDtype(std::string);
+        void printSymbolTable();
+        void printSymbolTableEntry(const std::pair<std::string, SymInfo*>&);
         void addTable();
         void removeTable();
         std::vector<std::unordered_map<std::string, SymInfo*>>& getTable();

@@ -26,7 +26,8 @@ SymInfo::SymInfo(const SymInfo& that) {
     /* tok = new Token(); */
     std::cout << "syminfo copy constructor called" << std::endl;
     std::cout << "that.tok addr: " << std::hex << that.tok << std::endl;
-    tok = new Token(*that.tok);
+    std::cout << "copying token in syminfo\n";
+    tok = new Token(*that.tok);  // just make shallow copy by invoking default copy constructor
     std::cout << "after Token copy" << std::endl;
 
     /* tok = new Token(); */
@@ -39,7 +40,53 @@ Token* SymInfo::getToken() {
     return tok;
 }
 
-void SymInfo::print() {}
+void SymInfo::print() {
+    switch (symtype) {
+        case symType::VAR_SYM:
+            std::cout << "variable";
+            break;
+        case symType::PROC_SYM:
+            std::cout << "procedure";
+            break;
+        case symType::PROG_SYM:
+            std::cout << "program";
+            break;
+        case symType::ARR_SYM:
+            std::cout << "array";
+            break;
+        default:
+            std::cout << "symtype_unknown";
+    }
+
+    std::cout << " : type ";
+
+    /* std::cout << " ,"; */
+
+    switch(symdtype) {
+        case symDatatype::INT_DTYPE:
+            std::cout << "INTEGER";
+            break;
+        case symDatatype::FLOAT_DTYPE:
+            std::cout << "FLOAT";
+            break;
+        case symDatatype::BOOL_DTYPE:
+            std::cout << "BOOLEAN";
+            break;
+        case symDatatype::STR_DTYPE:
+            std::cout << "STRING";
+            break;
+        case symDatatype::NA_DTYPE:
+            std::cout << "N/A";
+            break;
+        case symDatatype::NOT_FOUND:
+            std::cout << "UNDECLARED!";
+            break;
+        default:
+            std::cout << "UNKNOWN";
+    }
+
+    /* std::cout << std::endl; */
+}
 
 /* SymInfo::~SymInfo() noexcept{ */
 /*     delete tok;  // TODO check */
@@ -72,11 +119,58 @@ SymInfo_proc& SymInfo_proc::operator=(const SymInfo& syminfo) {
     return *this;
 }
 
-void SymInfo_proc::print() {}
+void SymInfo_proc::print() {
+    SymInfo::print();
+    std::cout << std::endl;
+    std::cout << "  param list:" << std::endl;
+
+    for (auto& el: list_param) {
+        std::cout << "  ";
+        el->print();
+    }
+    /* std::cout << "\nprinted param list\n"; */
+}
+
+
+void SymInfo_array::print() {
+    SymInfo::print();
+    std::cout << "\n  size: " << size;
+}
 
 
 std::vector<std::unordered_map<std::string, SymInfo*>>& SymbolTable::getTable() {
     return vec_symtab;
+}
+
+
+void SymbolTable::printSymbolTableEntry(const std::pair<std::string, SymInfo*>& symtab_entry) {
+    /* std::cout << std::endl; */
+
+    // do not print RWs
+    if (symtab_entry.second->symtype == symType::RW_SYM) return;
+
+    std::cout << symtab_entry.first << " : ";
+    symtab_entry.second->print();
+    /* std::endl; */
+    std::cout << std::endl << std::endl;
+}
+
+
+void SymbolTable::printSymbolTable() {
+    // print lat symbolTable in the vector
+
+    /* std::cout << "\n\n=====================\n"; */
+    std::cout << "\n\nPrinting popped out Symbol Table\n";
+    std::cout << "#################################\n\n";
+
+    auto map_symtab = vec_symtab.back();
+
+    for (auto it = map_symtab.begin(); it != map_symtab.end(); ++it) {
+        printSymbolTableEntry(*it);
+        /* std::cout << std::endl; */
+    }
+
+    std::cout << "\n###############################\n\n";
 }
 
 
@@ -87,6 +181,7 @@ void SymbolTable::addTable() {
 
 
 void SymbolTable::removeTable() {
+    printSymbolTable();
     vec_symtab.pop_back();
 }
 
@@ -143,8 +238,12 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
     /*             new Token(tokenType::IDENTIFIER, tokenStr))); */
 
     std::cout << "inserting... tokenStr: " << tokenStr << std::endl;
-    vec_symtab.back().insert(std::make_pair(tokenStr, new SymInfo(
-            new Token(tokenType::IDENTIFIER, tokenStr))));
+    vec_symtab.back().insert(std::make_pair(tokenStr, 
+                new SymInfo(
+                    new Token(tokenType::IDENTIFIER, tokenStr),
+                    symType::NA_SYM,
+                    symDatatype::NOT_FOUND
+                    )));
 
                 /* new Tokeninfo( */
                 /*     new Token(tokenType::IDENTIFIER, tokenStr), */
@@ -163,12 +262,15 @@ Token* SymbolTable::lookupTokenString(std::string tokenStr, bool* ptr_inCurrentS
 
 
 SymInfo* SymbolTable::getSymbolInfo(std::string tokenStr, symType symtype) {
+/* SymInfo* SymbolTable::getSymbolInfo(std::string tokenStr) { */
 
     for (auto it = vec_symtab.rbegin(); it != vec_symtab.rend(); ++it) {
         if (it->find(tokenStr) != it->end()) {
             /* return std::make_pair(scopeDepth, it->find(tokenStr)->second); */
             if (it->find(tokenStr)->second->symtype == symtype)
                 return it->find(tokenStr)->second;
+
+            /* return it->find(tokenStr)->second; */
         }
     }
 
