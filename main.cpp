@@ -3,10 +3,15 @@
 /* #include "symbolTable.h" */
 
 
-int main() {
+int main(int argc, char *argv[]) {
 
+    if (argc != 2) {
+        std::cout << "Usage: ./main <source_filename>" << std::endl;
+        std::exit(1);
+    }
     /* std::string filename = "../project_description/testPgms/correct/recursiveFib.src"; */
-    std::string filename = "testparseprog.src";
+    /* std::string filename = "testparseprog.src"; */
+    std::string filename {argv[1]};
 
     /* LexicalAnalyzer* lexer = LexicalAnalyzer::getInstance(); */
 
