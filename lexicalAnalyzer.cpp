@@ -281,7 +281,7 @@ Token* LexicalAnalyzer::scan(bool *inCurrentScope, SymInfo** ptr_syminfo) {
     /* std::cout << "filepos: " << srcFile->getPos() << std::endl; */
 
     while (srcFile->isgood()) {  // TODO or just true
-        prerr("LEXER::scan - looping before buildToken");
+        /* prerr("LEXER::scan - looping before buildToken"); */
 
         if (isWhitespace()) removeWhitespace();
 
@@ -305,7 +305,7 @@ SymbolTable& LexicalAnalyzer::getSymbolTable() {
 /* Token* LexicalAnalyzer::buildToken(SymbolScopeInfo* symscopeinfo) { */
 Token* LexicalAnalyzer::buildToken(bool* ptr_inCurrentScope, SymInfo** ptr_syminfo) {
 
-    prerr("LEXER::buildToken");
+    /* prerr("LEXER::buildToken"); */
 
     char ch = srcFile->getChar(), nextCh;
     /* std::cerr << "ch: " << ch; */

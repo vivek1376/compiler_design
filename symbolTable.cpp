@@ -286,7 +286,8 @@ symDatatype SymbolTable::getSymDtype(std::string tokenStr) {
     symDatatype ret_symdtype = symDatatype::NOT_FOUND;
 
     for (auto it = vec_symtab.rbegin(); it != vec_symtab.rend(); ++it) {
-        if (it->find(tokenStr) != it->end()) {
+        if ((it->find(tokenStr) != it->end()) 
+            && (it->find(tokenStr)->second->symdtype != symDatatype::NOT_FOUND)) {
             /* return std::make_pair(scopeDepth, it->find(tokenStr)->second); */
             return it->find(tokenStr)->second->symdtype;
         }

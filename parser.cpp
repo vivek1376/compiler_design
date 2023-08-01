@@ -887,7 +887,12 @@ nt_retType_destination* Parser::parse_destination() {
     ptr_ret->ptr_identifier = parse_identifier(nullptr);
     ptr_ret->returnCode &= ptr_ret->ptr_identifier->returnCode;
 
-    ptr_ret->syminfo->symdtype = ptr_ret->ptr_identifier->syminfo->symdtype;
+    // since parse_identifier may return syminfo with NOT_FOUND even if variable is
+    // declared in an outer scope
+    ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
+            ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()); 
+
+    /* ptr_ret->syminfo->symdtype = ptr_ret->ptr_identifier->syminfo->symdtype; */
 
     Token* lookahead = lexer->getlookahead();
 
@@ -1292,7 +1297,7 @@ nt_retType_factor* Parser::parse_factor() {
                     /* || (procedure_decl_SymInfo_proc->symtype != symType::PROC_SYM)) { */
                 logger->reportError(std::string("Procedure '" + proc_name 
                             + "' not declared"));
-                LEXER->getSymbolTable().getTable().back()[proc_name]->symtype = symType::PROC_SYM;
+                /* LEXER->getSymbolTable().getTable().back()[proc_name]->symtype = symType::PROC_SYM; */
                 /* procedureName_SymInfo->symtype = symType::PROC_SYM; */
             } else {
 
@@ -1356,6 +1361,7 @@ nt_retType_factor* Parser::parse_factor() {
             std::cout << "variable tokenString: " 
                 << ptr_name->ptr_identifier->ptr_tk_str->getTokenStr() 
                 << std::endl;
+
             // now, get the symdtype of the identifier from the symbol table
             ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
                     ptr_name->ptr_identifier->ptr_tk_str->getTokenStr());
@@ -1497,14 +1503,22 @@ nt_retType_name* Parser::parse_name() {
     nt_retType_name* ptr_ret = new nt_retType_name();
 
     ptr_ret->ptr_identifier = parse_identifier(nullptr);
+    ptr_ret->returnCode &= ptr_ret->ptr_identifier->returnCode;
+
+    ptr_ret->syminfo->symdtype = LEXER->getSymbolTable().getSymDtype(
+            ptr_ret->ptr_identifier->ptr_tk_str->getTokenStr()); 
 
     Token *lookahead = lexer->getlookahead();
-    std::cout << "h1\n" << std::endl;
+    /* std::cout << "h1\n" << std::endl; */
     if (lookahead->getTokenType() == tokenType::L_BRACKET) {
         ptr_ret->ptr_tk_lbkt = match(tokenType::L_BRACKET, nullptr, nullptr);
 
         ptr_ret->ptr_expression = parse_expression();
         ptr_ret->returnCode &= ptr_ret->ptr_expression->returnCode;
+
+        if (ptr_ret->ptr_expression->syminfo->symdtype != symDatatype::INT_DTYPE) {
+            logger->reportError("<expression should evaluate to integer in parse_name");
+        }
 
         ptr_ret->ptr_tk_rbkt = match(tokenType::R_BRACKET, nullptr, nullptr);
     }
